@@ -4,29 +4,44 @@
   * 2017-07-29
  **/
 
-Table table;         // TSV tab separated edge list data
-StringList graphviz; // GV graphviz dot file lines
-StringList tgf;      // TGF trivial graph format
-StringList tgfnodes; // TGF trivial graph format nodes
-StringList tgfedges; // TGF trivial graph format edges
+File dir; 
 
 void setup() {  
-  table = loadTable("example.txt", "tsv"); // tsv, header
-  table.sort(0);
-  println(table.getRowCount() + " rows in table\n");
+  dir = new File(sketchPath("")); // or dataPath
+  selectFolder("Select a folder of .txt files:", "batchSelection");
+}
 
-  graphviz = new StringList();
-  makeGraphviz();
-
-  tgf = new StringList();
-  tgfnodes = new StringList();
-  tgfedges = new StringList();
-  makeTGF();
-  
+void batchSelection(File selection) {
+  if (selection == null) {
+    println("No selection (canceled or closed)");
+  } else {
+    println("Selected: " + selection.getAbsolutePath());
+    dir = selection; 
+    batchMakeTGF(dir, ".txt");
+    batchMakeGraphviz(dir, ".txt");
+  }
   exit();
 }
 
-void makeTGF() {
+void batchMakeTGF(File dir, String ext) {
+  File [] files = dir.listFiles();
+  for (int i = 0; i <= files.length - 1; i++) {
+    String path = files[i].getAbsolutePath();
+    if (path.toLowerCase().endsWith(ext)) {
+      makeTGF(files[i].getAbsolutePath());
+    }
+  }
+}
+
+void makeTGF(String file) {
+  Table table = loadTable(file, "tsv"); // // TSV tab separated edge list data - tsv, header
+  // table.sort(0);
+  println(table.getRowCount() + " rows in table\n");
+
+  StringList tgf = new StringList();
+  StringList tgfnodes = new StringList();
+  StringList tgfedges = new StringList();
+
   for (TableRow row : table.rows()) {
     if (row.getString(1)==null || row.getString(1).equals("")) {
       String node = "" + row.getInt(0);
@@ -42,17 +57,36 @@ void makeTGF() {
       tgfedges.append(edge);
     }
   }
-  tgfnodes.append("#");
-  for (int i=0; i<tgfedges.size(); i++) {
-    tgfnodes.append(tgfedges.get(i));
+  for (int i=0; i<tgfnodes.size(); i++) {
+    tgf.append(tgfnodes.get(i));
   }
-  saveStrings("example.txt.tgf", tgfnodes.array());
+  tgf.append("#");
+  for (int i=0; i<tgfedges.size(); i++) {
+    tgf.append(tgfedges.get(i));
+  }
+  saveStrings(file + ".tgf", tgf.array());
 }
 
-void makeGraphviz() {
+void batchMakeGraphviz(File dir, String ext) {
+  File [] files = dir.listFiles();
+  for (int i = 0; i <= files.length - 1; i++) {
+    String path = files[i].getAbsolutePath();
+    if (path.toLowerCase().endsWith(ext)) {
+      makeGraphviz(files[i].getAbsolutePath());
+    }
+  }
+}
+
+void makeGraphviz(String file) {
+  Table table = loadTable(file, "tsv"); // // TSV tab separated edge list data - tsv, header
+  // table.sort(0);
+  println(table.getRowCount() + " rows in table\n");
+
+  StringList graphviz = new StringList(); // GV graphviz dot file lines
   graphviz.append("digraph g{");
   graphviz.append("  graph [rankdir=LR];");
   graphviz.append("  node  [shape=square];");
+
   for (TableRow row : table.rows()) {
     String edge = "  " + row.getInt(0);
     if (row.getString(1)==null || row.getString(1).equals("")) {
@@ -69,5 +103,5 @@ void makeGraphviz() {
   for (String s : graphviz) {
     println(s);
   }
-  saveStrings("example.txt.gv", graphviz.array());
+  saveStrings(file + ".gv", graphviz.array());
 }
