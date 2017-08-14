@@ -5,8 +5,12 @@
  **/
 
 File dir; 
+String os;
+boolean doImage;
+boolean doPopup;
 
 void setup() {  
+  os = System.getProperty("os.name");
   dir = new File(sketchPath("")); // or dataPath
   selectFolder("Select a folder of .txt files:", "batchSelection");
 }
@@ -19,6 +23,15 @@ void batchSelection(File selection) {
     dir = selection; 
     batchMakeTGF(dir, ".txt");
     batchMakeGraphviz(dir, ".txt");
+    println(os);
+    if (os.equals("Mac OS X")) {
+      if (doImage == true) {
+        batchDotPNG(dir, ".gv");
+      }
+      if (doPopup == true) {
+        batchShowPNG(dir, ".gv");
+      }
+    }
   }
   exit();
 }
@@ -29,6 +42,31 @@ void batchMakeTGF(File dir, String ext) {
     String path = files[i].getAbsolutePath();
     if (path.toLowerCase().endsWith(ext)) {
       makeTGF(files[i].getAbsolutePath());
+    }
+  }
+}
+
+void batchDotPNG(File dir, String ext) {
+  // String quote = "\"";
+  File [] files = dir.listFiles();
+  for (int i = 0; i <= files.length - 1; i++) {
+    String path = files[i].getAbsolutePath();
+    if (path.toLowerCase().endsWith(ext)) {
+      
+      // path =  quote + path + quote; 
+      // launch("/Applications/Graphviz.app"); // + " " + path);  --OR--  , path);
+      exec("/usr/local/bin/dot", "-Tpng", "-O", path); // e.g. dot -Tpng -O  *.gv
+    }
+  }
+}
+
+void batchShowPNG(File dir, String ext) {
+  // String quote = "\"";
+  File [] files = dir.listFiles();
+  for (int i = 0; i <= files.length - 1; i++) {
+    String path = files[i].getAbsolutePath();
+    if (path.toLowerCase().endsWith(ext)) {
+      launch("/Applications/Graphviz.app", path);
     }
   }
 }
@@ -102,9 +140,9 @@ void makeGraphviz(String file) {
   graphviz.append("  node  [shape=square];");
 
   String headnode = "";
-  
+
   for (TableRow row : table.rows()) {
-    
+
     // fill in duplicate origins:
     // if origin / node not specified
     if (row.getString(0)==null || row.getString(0).equals("")) {
@@ -118,7 +156,7 @@ void makeGraphviz(String file) {
       println("HEADNODE: " + headnode);
     }
 
-    
+
     String edge = "  " + row.getInt(0);
     if (row.getString(1)==null || row.getString(1).equals("")) {
       edge = edge + "      ";
