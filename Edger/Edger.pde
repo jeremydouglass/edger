@@ -1,7 +1,7 @@
 /** edger -- an edge list converter
   * Jeremy Douglass
   * Processing 3.3.5
-  * 2017-07-29
+  * 2017-08-04
  **/
 
 File dir; 
@@ -36,6 +36,10 @@ void batchMakeTGF(File dir, String ext) {
 void makeTGF(String file) {
   Table table = loadTable(file, "tsv"); // // TSV tab separated edge list data - tsv, header
   // table.sort(0);
+  // 1. Having to tab over after entering the second column value (so telling it it doesn't need a third column to work, if that makes sense).
+  if(table.getColumnCount()<3){
+    table.addColumn("label");
+  }
   println(table.getRowCount() + " rows in table\n");
 
   StringList tgf = new StringList();
@@ -95,7 +99,7 @@ void makeGraphviz(String file) {
       edge = edge + " -> " + row.getInt(1);
     }
     if (row.getString(2)!=null) {
-      edge = edge + "\t" + "[label=" + row.getString(2) + "]";
+      edge = edge + "\t" + "[label=" + "\"" + row.getString(2) + "\"" + "]";
     }
     graphviz.append(edge + ';');
   }
