@@ -164,10 +164,10 @@ void makeGraphviz(String file) {
       edge = edge + " -> " + row.getInt(1);
     }
     if (row.getString(2)!=null) {
-      edge = edge + "\t" + "[label=" + "\"" + row.getString(2) + "\"" + "];";
+      edge = edge + "\t" + "[label=" + "\"" + row.getString(2).replace("\"","") + "\"" + "]";
     }
+    edge = edge + ";";
 
-    // debug -- comment blocks generate an extra linebreak
     if (table.getColumnCount()>3) {
       String comment = "";
       // accumulate comment columns into one string
