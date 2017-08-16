@@ -1,0 +1,2 @@
+1	2	run away fast
+2	3	jump very high

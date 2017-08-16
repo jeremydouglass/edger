@@ -1,0 +1,7 @@
+
+
+
+
+1		first node	comment phrase number 1
+1	2	first edge	comment phrase number 2
+2	3	second edge	comment phrase number 2
