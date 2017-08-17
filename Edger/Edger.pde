@@ -1,7 +1,7 @@
 /** edger -- an edge list converter
-  * Jeremy Douglass
-  * Processing 3.3.5
-  * 2017-08-04
+ * Jeremy Douglass
+ * Processing 3.3.5
+ * 2017-08-16
  **/
 
 File dir; 
@@ -19,11 +19,11 @@ void batchSelection(File selection) {
   if (selection == null) {
     println("No selection (canceled or closed)");
   } else {
-    println("Selected: " + selection.getAbsolutePath());
+    println("Selected:\n    " + selection.getAbsolutePath() + "\n");
     dir = selection; 
     batchMakeTGF(dir, ".txt");
     batchMakeGraphviz(dir, ".txt");
-    println(os);
+    println("OS: ", os);
     if (os.equals("Mac OS X")) {
       if (doImage == true) {
         batchDotPNG(dir, ".gv");
@@ -52,7 +52,6 @@ void batchDotPNG(File dir, String ext) {
   for (int i = 0; i <= files.length - 1; i++) {
     String path = files[i].getAbsolutePath();
     if (path.toLowerCase().endsWith(ext)) {
-      
       // path =  quote + path + quote; 
       // launch("/Applications/Graphviz.app"); // + " " + path);  --OR--  , path);
       exec("/usr/local/bin/dot", "-Tpng", "-O", path); // e.g. dot -Tpng -O  *.gv
@@ -91,7 +90,6 @@ void makeTGF(String file) {
     } else {
       // cache origin
       headnode=row.getString(0);
-      println("HEADNODE: " + headnode);
     }
 
     if (row.getString(1)==null || row.getString(1).equals("")) {
@@ -115,9 +113,7 @@ void makeTGF(String file) {
   for (int i=0; i<tgfedges.size(); i++) {
     tgf.append(tgfedges.get(i));
   }
-  // for(String s: tgf.array()){
-  //   println(s);
-  // }
+  // for(String s: tgf.array()){ println(s); }
   saveStrings(file + ".tgf", tgf.array());
 }
 
@@ -153,7 +149,6 @@ void makeGraphviz(String file) {
     } else {
       // cache origin
       headnode=row.getString(0);
-      println("HEADNODE: " + headnode);
     }
 
 
@@ -164,7 +159,7 @@ void makeGraphviz(String file) {
       edge = edge + " -> " + row.getInt(1);
     }
     if (row.getString(2)!=null) {
-      edge = edge + "\t" + "[label=" + "\"" + row.getString(2).replace("\"","") + "\"" + "]";
+      edge = edge + "\t" + "[label=" + "\"" + row.getString(2).replace("\"", "") + "\"" + "]";
     }
     edge = edge + ";";
 
@@ -184,9 +179,7 @@ void makeGraphviz(String file) {
     graphviz.append(edge);
   }
   graphviz.append("}\n");
-  for (String s : graphviz) {
-    println(s);
-  }
+  // for (String s : graphviz) { println(s); }
   saveStrings(file + ".gv", graphviz.array());
 }
 
@@ -220,6 +213,5 @@ Table tableLoader(String file) {
   if (table.getColumnCount()<4) {
     table.addColumn("comment");
   }
-  // println(table.getRowCount() + " rows in table\n");
   return(table);
 }
