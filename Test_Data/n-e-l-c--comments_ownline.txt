@@ -1,0 +1,15 @@
+# comment own line
+
+1		first node	com1a	com2a	com3a	comment phrase a
+	# comment with tabs
+		# comment with tabs
+			# comment with tabs
+				# comment with tabs
+1	2	first edge	com1b	com2b	com3b	comment phrase b
+  # comment with spaces  
+  # comment with comment # second comment ## third comment # #
+2	3	second edge	com1c	com2c	com3c	comment phrase c
+
+# comment surrounded by blank lines
+
+# commen on last line
