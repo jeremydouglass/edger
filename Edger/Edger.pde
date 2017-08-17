@@ -1,3 +1,5 @@
+import java.io.ByteArrayInputStream;
+
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
@@ -183,22 +185,61 @@ void makeGraphviz(String file) {
   saveStrings(file + ".gv", graphviz.array());
 }
 
-Table tableLoader(String file) {
-  Table table = loadTable(file, "tsv"); // // TSV tab separated edge list data - tsv, header
+/**
+ * Takes a TSV tab-separated file string (no header)
+ * that describes a sparse edge list with comments
+ * pre-processes it for graph parsing (empty rows, padding)
+ * and returns the filestring as a Table.
+ */
+Table tableLoader(String fileName) {
 
-  // remove empty rows
-  for (int i=table.getRowCount()-1; i>=0; i--) {
-    TableRow row = table.getRow(i);
-    boolean full = false;
-    for (int j=0; j<row.getColumnCount(); j++) {
-      if (row.getString(j)!=null && !row.getString(j).equals("")) {
-        full = true;
+  // clean file line strings
+  StringList flist = new StringList(loadStrings(fileName));
+  for (int i=flist.size() - 1; i >= 0; i--) {
+    String s = trim(flist.get(i));
+    // delete empty lines
+    if (s.equals(null) || s.isEmpty()) {
+      // println("empty: ", s);
+      flist.remove(i);
+      continue;
+    } else {
+      // strip non-empty comment-only lines beginning with #
+      if (s.charAt(0)=='#') {
+        // flist.set(i, s);
+        flist.remove(i);
+        continue;
       }
     }
-    if (!full) {
-      table.removeRow(i);
-    }
   }
+  String fileString = join(flist.array(), "\n");
+  println("------------------------------");
+  println(fileString);
+  
+  // parse TSV filestring into Table object
+  Table table = new Table();
+  try {
+    InputStream stream = new ByteArrayInputStream(fileString.getBytes("UTF-8"));
+    table = new Table(stream, "tsv");
+  }
+  catch(IOException ie) {
+    ie.printStackTrace();
+  }
+
+  // Table table = loadTable(fileName, "tsv");
+
+  // remove empty rows
+  //for (int i=table.getRowCount()-1; i>=0; i--) {
+  //  TableRow row = table.getRow(i);
+  //  boolean full = false;
+  //  for (int j=0; j<row.getColumnCount(); j++) {
+  //    if (row.getString(j)!=null && !row.getString(j).equals("")) {
+  //      full = true;
+  //    }
+  //  }
+  //  if (!full) {
+  //    table.removeRow(i);
+  //  }
+  //}
 
   // add full columns
   if (table.getColumnCount()<1) {
