@@ -1,45 +1,53 @@
-import java.io.ByteArrayInputStream;
-
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
  * 2017-08-17
  **/
 
-File dir; 
+import java.io.ByteArrayInputStream;
+
+File workingDir; 
 String os;
 
-void setup() {  
+void setup() { 
+  println("EDGER");
   os = System.getProperty("os.name");
-  dir = new File(sketchPath("")); // or dataPath
-  selectFolder("Select a folder of .txt files:", "batchSelection");
+  println("OS: ", os);
+  workingDir = new File(sketchPath("")); // or dataPath
+  selectFolder("Select a folder of .txt files:", "selectFolder");
 }
 
-void batchSelection(File selection) {
+void selectFolder(File selection) {
   if (selection == null) {
     println("No selection (canceled or closed)");
   } else {
     println("Selected:\n    " + selection.getAbsolutePath() + "\n");
-    dir = selection; 
-    batchMakeTGF(dir, ".txt");
-    batchMakeGraphviz(dir, ".txt");
-    println("OS: ", os);
+    workingDir = selection;
   }
-  exit();
+  batch(workingDir, ".txt");
 }
 
-void batchMakeTGF(File dir, String ext) {
-  File [] files = dir.listFiles();
-  for (int i = 0; i <= files.length - 1; i++) {
-    String path = files[i].getAbsolutePath();
-    if (path.toLowerCase().endsWith(ext)) {
-      makeTGF(files[i].getAbsolutePath());
+void batch(File workingDir, String ext) {
+  File [] files = workingDir.listFiles();
+
+  // loop through file list 
+  for (int i = 0; i < files.length; i++) {
+    String fname = files[i].getName();
+    if (fname.toLowerCase().endsWith(ext)) {
+      Table fileTable = tableLoader(files[i].getAbsolutePath());
+      String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
+      String outGraphviz = files[i].getParent() + "/gv/" + fname + ".gv";
+      makeTGF(outTGF, fileTable);
+      makeGraphviz(outGraphviz, fileTable);
     }
   }
 }
 
-void makeTGF(String file) {
+void makeTGF(String outDir, String file) {
   Table table = tableLoader(file);
+  makeTGF(outDir, table);
+}
+void makeTGF(String outDir, Table table) {
   StringList tgf = new StringList();
   StringList tgfnodes = new StringList();
   StringList tgfedges = new StringList();
@@ -82,22 +90,15 @@ void makeTGF(String file) {
     tgf.append(tgfedges.get(i));
   }
   // for(String s: tgf.array()){ println(s); }
-  saveStrings(file + ".tgf", tgf.array());
+  saveStrings(outDir, tgf.array());
 }
 
-void batchMakeGraphviz(File dir, String ext) {
-  File [] files = dir.listFiles();
-  for (int i = 0; i <= files.length - 1; i++) {
-    String path = files[i].getAbsolutePath();
-    if (path.toLowerCase().endsWith(ext)) {
-      makeGraphviz(files[i].getAbsolutePath());
-    }
-  }
-}
 
-void makeGraphviz(String file) {
+void makeGraphviz(String outDir, String file) {
   Table table = tableLoader(file);
-
+  makeGraphviz(outDir, table);
+}
+void makeGraphviz(String outDir, Table table) {
   StringList graphviz = new StringList(); // GV graphviz dot file lines
   graphviz.append("digraph g{");
   graphviz.append("  graph [rankdir=LR];");
@@ -146,7 +147,7 @@ void makeGraphviz(String file) {
   }
   graphviz.append("}\n");
   // for (String s : graphviz) { println(s); }
-  saveStrings(file + ".gv", graphviz.array());
+  saveStrings(outDir, graphviz.array());
 }
 
 /**
