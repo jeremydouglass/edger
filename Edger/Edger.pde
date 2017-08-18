@@ -20,7 +20,6 @@ void setup() {
   selectFolder("Select a folder of .txt files:", "selectFolder");
   actionText = "select\n   folder...";
   textAlign(CENTER, CENTER);
-  textSize(18);
   noStroke();
 }
 
@@ -30,24 +29,28 @@ void draw() {
   fill(0);
   rect(0, 0, width, height/4);
   fill(255);
+  textSize(18);
   text("EDGER", width/2, height/8);
 
-  switch(runState){
-    case 0:
-      fill(0, 0, 255);
-      actionText = "refresh\ngraphs";
-      break;
-    case 1:
-      fill(255, 0, 0);
-      actionText = "   running...";
-      runState = 2;
-      break;
-    case 2:
-      runState = 0;
-      batch(workingDir, ".txt");
+  switch(runState) {
+  case 0:
+    fill(0, 0, 255);
+    actionText = "refresh\ngraphs";
+    break;
+  case 1:
+    fill(255, 0, 0);
+    actionText = "   running...";
+    runState = 2;
+    break;
+  case 2:
+    batch(workingDir, ".txt");
+    runState = 0;
+    delay(500);
+    break;
   }
   rect(0, height/4, width, 3*height/4);
   fill(255);
+  textSize(14);
   text(actionText, width/2, 7*height/12);
 }
 
