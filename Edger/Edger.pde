@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 
 File workingDir; 
 String os;
+String actionText;
 
 void setup() { 
   println("EDGER");
@@ -15,14 +16,39 @@ void setup() {
   println("OS: ", os);
   workingDir = new File(sketchPath("")); // or dataPath
   selectFolder("Select a folder of .txt files:", "selectFolder");
+  actionText = "select\n   folder...";
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  noStroke();
+}
+
+void draw() {
+  background(0);
+
+  fill(0);
+  rect(0,0,width,height/4);
+  fill(255);
+  text("EDGER", width/2, height/8);
+
+  fill(0,0,255);
+  rect(0,height/4,width,3*height/4);
+  fill(255);
+  text(actionText, width/2, 7*height/12);
+}
+
+void mouseClicked() {
+  batch(workingDir, ".txt");
 }
 
 void selectFolder(File selection) {
   if (selection == null) {
     println("No selection (canceled or closed)");
+    exit();
   } else {
     println("Selected:\n    " + selection.getAbsolutePath() + "\n");
     workingDir = selection;
+    // update screen button
+    actionText = "refresh\ngraphs";
   }
   batch(workingDir, ".txt");
 }
