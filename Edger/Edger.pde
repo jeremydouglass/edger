@@ -9,6 +9,8 @@ import java.io.ByteArrayInputStream;
 File workingDir; 
 String os;
 String actionText;
+boolean GRAPHVIZ_INSTALLED = false;
+int runState;
 
 void setup() { 
   println("EDGER");
@@ -26,18 +28,31 @@ void draw() {
   background(0);
 
   fill(0);
-  rect(0,0,width,height/4);
+  rect(0, 0, width, height/4);
   fill(255);
   text("EDGER", width/2, height/8);
 
-  fill(0,0,255);
-  rect(0,height/4,width,3*height/4);
+  switch(runState){
+    case 0:
+      fill(0, 0, 255);
+      actionText = "refresh\ngraphs";
+      break;
+    case 1:
+      fill(255, 0, 0);
+      actionText = "   running...";
+      runState = 2;
+      break;
+    case 2:
+      runState = 0;
+      batch(workingDir, ".txt");
+  }
+  rect(0, height/4, width, 3*height/4);
   fill(255);
   text(actionText, width/2, 7*height/12);
 }
 
 void mouseClicked() {
-  batch(workingDir, ".txt");
+  runState = 1;
 }
 
 void selectFolder(File selection) {
@@ -47,10 +62,8 @@ void selectFolder(File selection) {
   } else {
     println("Selected:\n    " + selection.getAbsolutePath() + "\n");
     workingDir = selection;
-    // update screen button
-    actionText = "refresh\ngraphs";
+    runState = 1;
   }
-  batch(workingDir, ".txt");
 }
 
 void batch(File workingDir, String ext) {
@@ -61,10 +74,17 @@ void batch(File workingDir, String ext) {
     String fname = files[i].getName();
     if (fname.toLowerCase().endsWith(ext)) {
       Table fileTable = tableLoader(files[i].getAbsolutePath());
-      String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
+      // GV
       String outGraphviz = files[i].getParent() + "/gv/" + fname + ".gv";
-      makeTGF(outTGF, fileTable);
       makeGraphviz(outGraphviz, fileTable);
+      // TGF
+      String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
+      makeTGF(outTGF, fileTable);
+      if (os.equals("Mac OS X") && GRAPHVIZ_INSTALLED) {   
+        // PNG
+        exec("/usr/local/bin/dot", "-Tpng", "-O", outGraphviz); // e.g. dot -Tpng -O  *.gv
+        // launch("/Applications/Graphviz.app", outGraphviz + ".png");
+      }
     }
   }
 }
@@ -203,7 +223,7 @@ Table tableLoader(String fileName) {
     }
   }
   String fileString = join(flist.array(), "\n");
-  
+
   // parse TSV filestring into Table object
   Table table = new Table();
   try {
