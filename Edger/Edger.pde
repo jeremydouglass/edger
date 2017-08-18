@@ -52,11 +52,21 @@ void draw() {
   fill(255);
   textSize(14);
   text(actionText, width/2, 7*height/12);
+  if (GRAPHVIZ_INSTALLED) {
+    textSize(10);
+    text("+PNG", width/2, height-10);
+  }
 }
 
 void mouseClicked() {
   runState = 1;
 }
+void keyPressed() {
+  if (key=='p'||key=='P') {
+    GRAPHVIZ_INSTALLED = !GRAPHVIZ_INSTALLED;
+  }
+}
+
 
 void selectFolder(File selection) {
   if (selection == null) {
