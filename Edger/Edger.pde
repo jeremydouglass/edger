@@ -3,13 +3,11 @@ import java.io.ByteArrayInputStream;
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
- * 2017-08-16
+ * 2017-08-17
  **/
 
 File dir; 
 String os;
-boolean doImage;
-boolean doPopup;
 
 void setup() {  
   os = System.getProperty("os.name");
@@ -26,14 +24,6 @@ void batchSelection(File selection) {
     batchMakeTGF(dir, ".txt");
     batchMakeGraphviz(dir, ".txt");
     println("OS: ", os);
-    if (os.equals("Mac OS X")) {
-      if (doImage == true) {
-        batchDotPNG(dir, ".gv");
-      }
-      if (doPopup == true) {
-        batchShowPNG(dir, ".gv");
-      }
-    }
   }
   exit();
 }
@@ -44,30 +34,6 @@ void batchMakeTGF(File dir, String ext) {
     String path = files[i].getAbsolutePath();
     if (path.toLowerCase().endsWith(ext)) {
       makeTGF(files[i].getAbsolutePath());
-    }
-  }
-}
-
-void batchDotPNG(File dir, String ext) {
-  // String quote = "\"";
-  File [] files = dir.listFiles();
-  for (int i = 0; i <= files.length - 1; i++) {
-    String path = files[i].getAbsolutePath();
-    if (path.toLowerCase().endsWith(ext)) {
-      // path =  quote + path + quote; 
-      // launch("/Applications/Graphviz.app"); // + " " + path);  --OR--  , path);
-      exec("/usr/local/bin/dot", "-Tpng", "-O", path); // e.g. dot -Tpng -O  *.gv
-    }
-  }
-}
-
-void batchShowPNG(File dir, String ext) {
-  // String quote = "\"";
-  File [] files = dir.listFiles();
-  for (int i = 0; i <= files.length - 1; i++) {
-    String path = files[i].getAbsolutePath();
-    if (path.toLowerCase().endsWith(ext)) {
-      launch("/Applications/Graphviz.app", path);
     }
   }
 }
@@ -141,8 +107,7 @@ void makeGraphviz(String file) {
 
   for (TableRow row : table.rows()) {
 
-    // fill in duplicate origins:
-    // if origin / node not specified
+    // fill in duplicate origins if origin / node not specified
     if (row.getString(0)==null || row.getString(0).equals("")) {
       // load cached origin
       if (!headnode.equals("")) {
@@ -152,7 +117,6 @@ void makeGraphviz(String file) {
       // cache origin
       headnode=row.getString(0);
     }
-
 
     String edge = "  " + row.getInt(0);
     if (row.getString(1)==null || row.getString(1).equals("")) {
@@ -212,8 +176,6 @@ Table tableLoader(String fileName) {
     }
   }
   String fileString = join(flist.array(), "\n");
-  println("------------------------------");
-  println(fileString);
   
   // parse TSV filestring into Table object
   Table table = new Table();
@@ -224,22 +186,6 @@ Table tableLoader(String fileName) {
   catch(IOException ie) {
     ie.printStackTrace();
   }
-
-  // Table table = loadTable(fileName, "tsv");
-
-  // remove empty rows
-  //for (int i=table.getRowCount()-1; i>=0; i--) {
-  //  TableRow row = table.getRow(i);
-  //  boolean full = false;
-  //  for (int j=0; j<row.getColumnCount(); j++) {
-  //    if (row.getString(j)!=null && !row.getString(j).equals("")) {
-  //      full = true;
-  //    }
-  //  }
-  //  if (!full) {
-  //    table.removeRow(i);
-  //  }
-  //}
 
   // add full columns
   if (table.getColumnCount()<1) {
