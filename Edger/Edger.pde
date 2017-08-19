@@ -266,3 +266,12 @@ Table tableLoader(String fileName) {
   }
   return(table);
 }
+
+void launchGraph(String filename) {
+  if (os.equals("Mac OS X")){
+    launch("/Applications/Graphviz.app", filename);  
+  }
+  if (os.toLowerCase().startsWith("win")){
+    launch("C:/Program Files (x86)/Graphviz/bin/gvedit.exe", filename);
+  }
+}
