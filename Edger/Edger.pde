@@ -1,7 +1,7 @@
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
- * 2017-08-17
+ * 2017-08-19
  **/
 
 import java.io.ByteArrayInputStream;
@@ -99,7 +99,7 @@ void batch(File workingDir, String ext) {
         exec(params);
       }
       if (os.toLowerCase().startsWith("win") && GRAPHVIZ_INSTALLED) {
-        String[] params = { "C:/Program Files (x86)/Graphviz/bin/dot.exe", "-Tpng", "-O", outGraphviz };
+        String[] params = { "C:/Program Files (x86)/Graphviz*/bin/dot.exe", "-Tpng", "-O", outGraphviz };
         exec(params);
       }
     }
@@ -268,10 +268,10 @@ Table tableLoader(String fileName) {
 }
 
 void launchGraph(String filename) {
-  if (os.equals("Mac OS X")){
-    launch("/Applications/Graphviz.app", filename);  
+  if (os.toLowerCase().startsWith("mac")) {
+    launch("/Applications/Graphviz.app", filename);
   }
-  if (os.toLowerCase().startsWith("win")){
-    launch("C:/Program Files (x86)/Graphviz/bin/gvedit.exe", filename);
+  if (os.toLowerCase().startsWith("win")) {
+    launch("C:/Program Files (x86)/Graphviz*/bin/gvedit.exe", filename);
   }
 }
