@@ -93,10 +93,14 @@ void batch(File workingDir, String ext) {
       // TGF
       String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
       makeTGF(outTGF, fileTable);
-      if (os.equals("Mac OS X") && GRAPHVIZ_INSTALLED) {   
-        // PNG
-        exec("/usr/local/bin/dot", "-Tpng", "-O", outGraphviz); // e.g. dot -Tpng -O  *.gv
-        // launch("/Applications/Graphviz.app", outGraphviz + ".png");
+      // PNG
+      if (os.equals("Mac OS X") && GRAPHVIZ_INSTALLED) {
+        String[] params = { "/usr/local/bin/dot", "-Tpng", "-O", outGraphviz }; // e.g. dot -Tpng -O  *.gv
+        exec(params);
+      }
+      if (os.toLowerCase().startsWith("win") && GRAPHVIZ_INSTALLED) {
+        String[] params = { "C:/Program Files (x86)/Graphviz/bin/dot.exe", "-Tpng", "-O", outGraphviz };
+        exec(params);
       }
     }
   }
