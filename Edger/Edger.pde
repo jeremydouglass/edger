@@ -1,7 +1,7 @@
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
- * 2017-08-19
+ * 2017-08-20
  **/
 
 import java.io.ByteArrayInputStream;
@@ -20,7 +20,7 @@ void setup() {
 
   labelCodeDict = new StringDict();
 
-  labelCodeDict.set("graph", "rankdir=LR");
+  labelCodeDict.set("graph", "rankdir=LR, ordering=out");
   labelCodeDict.set("node", "colorscheme=spectral9, shape=square");
   labelCodeDict.set("edge", "colorscheme=spectral9, fontcolor=9");
   labelCodeDict.set("nodeLabeled", "style=filled, fillcolor=5");
