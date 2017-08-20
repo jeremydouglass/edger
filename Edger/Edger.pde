@@ -30,7 +30,9 @@ void setup() {
   labelCodeDict.set("E", "style=filled, fillcolor=2");
   labelCodeDict.set("WIN", "style=filled, fillcolor=9");
   labelCodeDict.set("!", "penwidth=2, color=1, fontcolor=1");
-  
+
+  loadConfig();
+
   workingDir = new File(sketchPath("")); // or dataPath
   selectFolder("Select a folder of .txt files:", "selectFolder");
   actionText = "select\n   folder...";
@@ -58,6 +60,7 @@ void draw() {
     runState = 2;
     break;
   case 2:
+    loadConfig();
     batch(workingDir, ".txt");
     runState = 0;
     delay(500);
@@ -316,5 +319,19 @@ void launchGraph(String filename) {
   }
   if (os.toLowerCase().startsWith("win")) {
     launch("C:/Program Files (x86)/Graphviz*/bin/gvedit.exe", filename);
+  }
+}
+
+void loadConfig() {
+  try {
+    Table table = loadTable("gvStyles.txt", "tsv");
+    for (TableRow row : table.rows()) {
+      println(row.getString(0), row.getString(1));
+      labelCodeDict.set(row.getString(0), row.getString(1));
+      println(labelCodeDict.get(row.getString(0)));
+    }
+  }
+  catch (NullPointerException e) {
+    println("Config file not found.");
   }
 }
