@@ -197,10 +197,10 @@ void makeGraphviz(String outDir, Table table) {
       // apply default label styles if no custom styles
       if (args.size() == 0) {
         if (isEdge) {
-          args.append(labelCodeDict.get("defaultLabeledEdge"));
+          args.append(labelCodeDict.get("edgeLabeled"));
         }
         if (isNode) {
-          args.append(labelCodeDict.get("defaultLabeledNode"));
+          args.append(labelCodeDict.get("nodeLabeled"));
         }
       }
       args.append("label=" + "\"" + row.getString(2).replace("\"", "") + "\"");
