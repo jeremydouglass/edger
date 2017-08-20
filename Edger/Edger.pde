@@ -206,7 +206,13 @@ void makeGraphviz(String outDir, Table table) {
           args.append(labelCodeDict.get("nodeLabeled"));
         }
       }
-      args.append("label=" + "\"" + row.getString(2).replace("\"", "") + "\"");
+      if (row.getString(2).length()>3) {
+        // print long label outside node, leave default node id label
+        args.append("xlabel=" + "\"" + row.getString(2).replace("\"", "") + "\"");
+      } else {
+        // replace default node id with id-plus-label
+        args.append("label=" + "\"" + row.getString(0).replace("\"", "") + " " + row.getString(2).replace("\"", "") + "\"");
+      }
       // add args to line
       entry = entry + "\t" + "[ " + join(args.array(), ", ") + " ]";
     }
@@ -302,14 +308,6 @@ Table tableLoader(String fileName) {
     }
   }
 
-  // prefix special label codes with node numbers (S, E)
-  for (TableRow row : table.rows()) {
-    for (String labelCode : labelCodeDict.keyArray()) {
-      if (row.getString(2)!=null && row.getString(2).equals(labelCode)) {
-        row.setString(2, row.getString(0) + " " + labelCode);
-      }
-    }
-  }
   return(table);
 }
 
