@@ -12,7 +12,7 @@ import org.graphstream.algorithm.Toolkit.*;
 File workingDir; 
 String os;
 String actionText;
-boolean GRAPHVIZ_INSTALLED = false;
+boolean GRAPHVIZ_INSTALLED = true;
 int runState;
 StringDict labelCodeDict;
 
@@ -126,12 +126,24 @@ void batch(File workingDir, String ext) {
       makeTGF(outTGF, fileTable);
       // PNG
       if (os.equals("Mac OS X") && GRAPHVIZ_INSTALLED) {
-        String[] params = { "/usr/local/bin/dot", "-Tpng", "-O", outGraphviz }; // e.g. dot -Tpng -O  *.gv
-        exec(params);
+        try {
+          String[] params = { "/usr/local/bin/dot", "-Tpng", "-O", outGraphviz }; // e.g. dot -Tpng -O  *.gv
+          exec(params);
+        } 
+        catch (RuntimeException e) {
+          // ignore missing image generator
+          // println("\n" + e);
+        }
       }
       if (os.toLowerCase().startsWith("win") && GRAPHVIZ_INSTALLED) {
-        String[] params = { "C:/Program Files (x86)/Graphviz*/bin/dot.exe", "-Tpng", "-O", outGraphviz };
-        exec(params);
+        try {
+          String[] params = { "C:/Program Files (x86)/Graphviz*/bin/dot.exe", "-Tpng", "-O", outGraphviz };
+          exec(params);
+        } 
+        catch (RuntimeException e) {
+          // ignore missing image generator
+          // println("\n" + e);
+        }
       }
 
       // build GraphStream graph
