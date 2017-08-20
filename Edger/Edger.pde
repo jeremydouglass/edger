@@ -104,6 +104,15 @@ void batch(File workingDir, String ext) {
   File [] files = workingDir.listFiles();
   Graph graph;
   GraphUtils gu;
+
+  Table graphStatSummary = new Table();
+  graphStatSummary.addColumn("File");
+  graphStatSummary.addColumn("Nodes");
+  graphStatSummary.addColumn("Diameter");
+  graphStatSummary.addColumn("AvgDegree");
+  graphStatSummary.addColumn("Top Nodes");
+  TableRow summRow;
+
   // loop through file list 
   for (int i = 0; i < files.length; i++) {
     String fname = files[i].getName();
@@ -124,15 +133,37 @@ void batch(File workingDir, String ext) {
         String[] params = { "C:/Program Files (x86)/Graphviz*/bin/dot.exe", "-Tpng", "-O", outGraphviz };
         exec(params);
       }
+
+      // build GraphStream graph
       graph = loadGraphStream(fname, fileTable);
+
+      // collect graph statistics
       gu = new GraphUtils();
       gu.init(graph);
       gu.compute();
-      println(gu);
+
+      // display statistics and save to file
+      println(gu);      
       String outLog = files[i].getParent() + "/log/" + fname + ".log.txt";
       gu.saveLog(outLog);
+
+      // add key statistics to summary table
+      summRow = graphStatSummary.addRow();
+      summRow.setString("File", fname);
+      summRow.setInt("Nodes", gu.nodeCount);
+      summRow.setString("Diameter", nf(gu.diameter, 0, 2));
+      summRow.setString("AvgDegree", nf(gu.averageDegree, 0, 2));
+      StringList dmap = new StringList();
+      for (Node n : gu.degreeMap) {
+        if (n.getDegree()>3) {
+          dmap.append(n.getId());
+        }
+      }
+      summRow.setString("Top Nodes", join(dmap.array(), ", "));
     }
   }
+  // save summary statistics table to working directory
+  saveTable(graphStatSummary, workingDir + "/log/_graph_stats.log.csv", "csv");
 }
 
 void makeTGF(String outDir, String file) {
@@ -455,10 +486,10 @@ class GraphUtils implements Algorithm {
       }
     }
   }
-  void saveLog(String fname){
+  void saveLog(String fname) {
     saveStrings(fname, getLog().array());
   }
-  StringList getLog(){
+  StringList getLog() {
     StringList list = new StringList();
     list.append("----------------------------------------");
     list.append("GRAPH:");
