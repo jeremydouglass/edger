@@ -5,6 +5,9 @@
  **/
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import org.graphstream.graph.*;
+import org.graphstream.algorithm.Toolkit.*;
 
 File workingDir; 
 String os;
@@ -99,7 +102,8 @@ void selectFolder(File selection) {
 
 void batch(File workingDir, String ext) {
   File [] files = workingDir.listFiles();
-
+  Graph graph;
+  GraphUtils gu;
   // loop through file list 
   for (int i = 0; i < files.length; i++) {
     String fname = files[i].getName();
@@ -120,6 +124,13 @@ void batch(File workingDir, String ext) {
         String[] params = { "C:/Program Files (x86)/Graphviz*/bin/dot.exe", "-Tpng", "-O", outGraphviz };
         exec(params);
       }
+      graph = loadGraphStream(fname, fileTable);
+      gu = new GraphUtils();
+      gu.init(graph);
+      gu.compute();
+      println(gu);
+      String outLog = files[i].getParent() + "/log/" + fname + ".log.txt";
+      gu.saveLog(outLog);
     }
   }
 }
@@ -324,12 +335,185 @@ void loadConfig() {
   try {
     Table table = loadTable("gvStyles.txt", "tsv");
     for (TableRow row : table.rows()) {
-      println(row.getString(0), row.getString(1));
+      // println(row.getString(0), row.getString(1));
       labelCodeDict.set(row.getString(0), row.getString(1));
-      println(labelCodeDict.get(row.getString(0)));
+      // println(labelCodeDict.get(row.getString(0)));
     }
   }
   catch (NullPointerException e) {
     println("Config file not found.");
+  }
+}
+
+Graph loadGraphStream(String fname, Table table) {
+  Graph graph = new SingleGraph(fname);
+  graph.setStrict(false);
+  graph.setAutoCreate( true );
+  for (TableRow row : table.rows()) {
+    boolean isEdge = row.getString(1)!=null && !trim(row.getString(1)).isEmpty();
+    boolean isNode = !isEdge && row.getString(0)!=null && !trim(row.getString(0)).isEmpty();
+    if (isNode) {
+      graph.addNode(row.getString(0));
+    }
+    if (isEdge) {
+      graph.addEdge(row.getString(0)+"_"+row.getString(1), row.getString(0), row.getString(1), true);
+    }
+  }
+  return graph;
+}
+
+class GraphUtils implements Algorithm {
+  Graph graph;
+  int nodeCount;
+  String nodeList;
+  String edgeList;
+  float averageDegree;
+  float diameter;
+  float diameterDirected;
+  int[] degreeDistributionUndirected;
+  int[][] degreeRanges = new int[3][3];
+  float[] degreeAverages = new float [3];
+  int adjacencyMatrix[][];
+  ArrayList<Node> degreeMap = new ArrayList();
+
+  void init(Graph g) {
+    graph = g;
+  }
+  void compute() {
+    cNodeCount();
+    cNodeList();
+    cEdgeList();
+    cAverageDegree();
+    cDiameters();
+    cDegreeDistribution();
+    cDegreeRanges();
+    cAdjacencyMatrix();
+    cDegreeMap();
+  }
+
+  void cNodeCount() {
+    nodeCount = graph.getNodeCount();
+  }
+
+  void cNodeList() {
+    StringList list = new StringList();
+    for (Node n : graph) {
+      list.append(n.getId());
+    }
+    nodeList = join(list.array(), ", ");
+  }
+  void cEdgeList() {
+    StringList list = new StringList();
+    for (Edge e : graph.getEachEdge()) {
+      list.append(e.getId());
+    }
+    edgeList = join(list.array(), ", ");
+  }
+  void cAverageDegree() {
+    averageDegree = (float)Toolkit.averageDegree(graph);
+  }
+  void cDiameters() { // longest direct path
+    diameter = (float)Toolkit.diameter(graph);
+    diameterDirected = (float)Toolkit.diameter(graph, null, true);
+  }
+  void cDegreeDistribution() {
+    degreeDistributionUndirected = Toolkit.degreeDistribution(graph);
+  }
+  void cDegreeRanges() {
+    int min, inmin, outmin;
+    min = inmin = outmin = Integer.MAX_VALUE;
+    int max, inmax, outmax;
+    max = inmax = outmax = 0;
+    int tot, intot, outtot;
+    tot = intot = outtot = 0;
+    for (Node n : graph) {
+      min = Math.min(min, n.getDegree());
+      max = Math.max(max, n.getDegree());
+      tot = tot + n.getDegree();
+      inmin = Math.min(inmin, n.getInDegree());
+      inmax = Math.max(inmax, n.getInDegree());
+      intot = intot +  n.getInDegree();
+      outmin = Math.min(outmin, n.getOutDegree());
+      outmax = Math.max(outmax, n.getOutDegree());
+      outtot = outtot + n.getOutDegree();
+    }
+    degreeRanges[0][0] = min;
+    degreeRanges[0][1] = max;
+    degreeRanges[0][2] = tot;
+    degreeRanges[1][0] = inmin;
+    degreeRanges[1][1] = inmax;
+    degreeRanges[1][2] = intot;
+    degreeRanges[2][0] = outmin;
+    degreeRanges[2][1] = outmax;
+    degreeRanges[2][2] = outtot;
+  }
+  void cAdjacencyMatrix () {
+    adjacencyMatrix = new int[nodeCount][nodeCount];
+    for (int i = 0; i < nodeCount; i++) {
+      for (int j = 0; j < nodeCount; j++) {
+        adjacencyMatrix[i][j] = graph.getNode(i).hasEdgeBetween(j) ? 1 : 0;
+      }
+    }
+  }
+  void saveLog(String fname){
+    saveStrings(fname, getLog().array());
+  }
+  StringList getLog(){
+    StringList list = new StringList();
+    list.append("----------------------------------------");
+    list.append("GRAPH:");
+    list.append(graph.getId());
+    list.append("----------");
+    list.append("");
+    list.append("Node Count: " + nodeCount);
+    list.append("");
+    list.append("Node List:  " + nodeList); 
+    // list.append("Edge List:  " + edgeList);
+    list.append("");
+    list.append("Average degree: " + nf(averageDegree, 0, 2));
+    list.append("");
+    list.append("Diameter (directed):   " + diameterDirected); // the largest of all the shortest paths from any node to any other node
+    list.append("Diameter (undirected): " + diameter); // the largest of all the shortest paths from any node to any other node
+    list.append("");
+    String[] ddu = {"", ""};
+    for (int i = 0; i < degreeDistributionUndirected.length; i++) {
+      ddu[0] = ddu[0] + i + " ";
+      ddu[1] = ddu[1] + degreeDistributionUndirected[i] + " ";
+    }
+    list.append("Degree Distribution (undirected): ");
+    list.append("   degree: " + ddu[0]);
+    list.append("    nodes: " + ddu[1]);
+    list.append("");
+    list.append("Degree Ranges: ");
+    list.append("    min max tot");
+    list.append("all " + Arrays.toString(degreeRanges[0]));
+    list.append(" in " + Arrays.toString(degreeRanges[1]));
+    list.append("out " + Arrays.toString(degreeRanges[2]));
+    list.append("");
+    list.append("Degree map: (high degree nodes)");
+    list.append("#   In  Out Total");    
+    for (Node n : degreeMap) {
+      if (n.getDegree()>3) {
+        list.append(n.getId() + ":  " + n.getInDegree() + "   " + n.getOutDegree() + "   " + n.getDegree());
+      }
+    }  
+    list.append("");
+    list.append("");
+    return list;
+  }
+  String toString() {
+    StringList list = getLog();    
+    return join(list.array(), "\n");
+  }
+  String printAdjacencyMatrix() {
+    StringList list = new StringList();
+    list.append("Adjacency Matrix: ");
+    for (int[] row : adjacencyMatrix) {
+      list.append("   " + Arrays.toString(row));
+    }
+    return join(list.array(), "\n");
+  }
+  void cDegreeMap() {
+    degreeMap = Toolkit.degreeMap(graph);
   }
 }
