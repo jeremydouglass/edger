@@ -170,19 +170,19 @@ void makeGraphviz(String outDir, Table table) {
   graphviz.append("  edge  [" + labelCodeDict.get("edge") + "];");
 
   for (TableRow row : table.rows()) {
-    String edge = "  "; // indent
+    String entry = "  "; // indent
     boolean isEdge = row.getString(1)!=null && !trim(row.getString(1)).isEmpty();
     boolean isNode = !isEdge && row.getString(0)!=null && !trim(row.getString(0)).isEmpty();
     boolean hasLabel = row.getString(2)!=null && !trim(row.getString(2)).isEmpty();
 
     // column 0 - node / edge source
-    edge = edge + row.getInt(0);
+    entry = entry + row.getInt(0);
 
     // column 1 - edge destination
     if (isEdge) {
-      edge = edge + " -> " + row.getInt(1);
+      entry = entry + " -> " + row.getInt(1);
     } else {
-      edge = edge + "      ";
+      entry = entry + "      ";
     }
 
     // column 2 - label
@@ -205,10 +205,10 @@ void makeGraphviz(String outDir, Table table) {
       }
       args.append("label=" + "\"" + row.getString(2).replace("\"", "") + "\"");
       // add args to line
-      edge = edge + "\t" + "[ " + join(args.array(), ", ") + " ]";
+      entry = entry + "\t" + "[ " + join(args.array(), ", ") + " ]";
     }
     // end line
-    edge = edge + ";";
+    entry = entry + ";";
 
     // column 3+ - comments
     if (table.getColumnCount()>3) {
@@ -221,10 +221,10 @@ void makeGraphviz(String outDir, Table table) {
       }
       // add comment if not empty
       if (!comment.equals("")) {
-        edge = edge + "\t# " + comment.trim();
+        entry = entry + "\t# " + comment.trim();
       }
     }
-    graphviz.append(edge);
+    graphviz.append(entry);
   }
   // end digraph
   graphviz.append("}\n");
