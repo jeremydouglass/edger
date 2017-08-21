@@ -23,18 +23,6 @@ void setup() {
   println("OS: ", os);
 
   labelCodeDict = new StringDict();
-
-  labelCodeDict.set("graph", "rankdir=LR, ordering=out");
-  labelCodeDict.set("node", "colorscheme=spectral9, shape=square");
-  labelCodeDict.set("edge", "colorscheme=spectral9, fontcolor=9");
-  labelCodeDict.set("nodeLabeled", "style=filled, fillcolor=5");
-  labelCodeDict.set("edgeLabeled", "penwidth=2, color=9, fontcolor=9");
-
-  labelCodeDict.set("S", "style=filled, fillcolor=7");
-  labelCodeDict.set("E", "style=filled, fillcolor=2");
-  labelCodeDict.set("WIN", "style=filled, fillcolor=9");
-  labelCodeDict.set("!", "penwidth=2, color=1, fontcolor=1");
-
   loadConfig();
 
   switchFolder();
@@ -399,7 +387,20 @@ void loadConfig() {
   }
   catch (NullPointerException e) {
     println("Config file not found.");
+    loadConfigDefault();
   }
+}
+
+void loadConfigDefault() {
+  labelCodeDict.set("graph", "rankdir=LR, ordering=out fontsize=40");
+  labelCodeDict.set("node", "colorscheme=spectral9, shape=square");
+  labelCodeDict.set("edge", "colorscheme=spectral9, fontcolor=9");
+  labelCodeDict.set("nodeLabeled", "style=filled, fillcolor=5");
+  labelCodeDict.set("edgeLabeled", "penwidth=2, color=9, fontcolor=9");
+  labelCodeDict.set("S", "style=filled, fillcolor=7");
+  labelCodeDict.set("E", "style=filled, fillcolor=2");
+  labelCodeDict.set("WIN", "style=filled, fillcolor=9");
+  labelCodeDict.set("!", "penwidth=2, color=1, fontcolor=1");
 }
 
 Graph loadGraphStream(String fname, Table table) {
