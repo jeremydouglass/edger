@@ -122,7 +122,7 @@ void batch(File workingDir, String ext) {
       Table fileTable = tableLoader(files[i].getAbsolutePath());
       // GV
       String outGraphviz = files[i].getParent() + "/gv/" + fname + ".gv";
-      makeGraphviz(outGraphviz, fileTable);
+      makeGraphviz(outGraphviz, fileTable, fname);
       // TGF
       String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
       makeTGF(outTGF, fileTable);
@@ -217,14 +217,14 @@ void makeTGF(String outDir, Table table) {
 }
 
 
-void makeGraphviz(String outDir, String file) {
+void makeGraphviz(String outDir, String file, String fname) {
   Table table = tableLoader(file);
-  makeGraphviz(outDir, table);
+  makeGraphviz(outDir, table, fname);
 }
-void makeGraphviz(String outDir, Table table) {
+void makeGraphviz(String outDir, Table table, String fname) {
   StringList graphviz = new StringList(); // GV graphviz dot file lines
   graphviz.append("digraph g{");
-  graphviz.append("  graph [" + labelCodeDict.get("graph") + "];");
+  graphviz.append("  graph [" + labelCodeDict.get("graph") + " label=" + "\"" + fname + "\"" + "];");
   graphviz.append("  node  [" + labelCodeDict.get("node") + "];");
   graphviz.append("  edge  [" + labelCodeDict.get("edge") + "];");
 
