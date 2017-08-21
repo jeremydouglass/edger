@@ -17,6 +17,7 @@ int runState;
 StringDict labelCodeDict;
 
 void setup() { 
+  size(200, 100);
   println("EDGER");
   os = System.getProperty("os.name");
   println("OS: ", os);
@@ -73,10 +74,14 @@ void draw() {
   fill(255);
   textSize(14);
   text(actionText, width/2, 7*height/12);
+  pushStyle();
+  textSize(10);
+  textAlign(RIGHT, CENTER);
   if (GRAPHVIZ_INSTALLED) {
-    textSize(10);
-    text("+PNG", width/2, height-10);
+    text("+PNG", width-5, height/4 + 10);
   }
+  text(workingDir.getName(), width-5, height-10);
+  popStyle();
 }
 
 void mouseClicked() {
