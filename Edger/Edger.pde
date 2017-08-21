@@ -37,9 +37,8 @@ void setup() {
 
   loadConfig();
 
-  workingDir = new File(sketchPath("")); // or dataPath
-  selectFolder("Select a folder of .txt files:", "selectFolder");
-  actionText = "select\n   folder...";
+  switchFolder();
+
   textAlign(CENTER, CENTER);
   noStroke();
 }
@@ -91,8 +90,18 @@ void keyPressed() {
   if (key=='p'||key=='P') {
     GRAPHVIZ_INSTALLED = !GRAPHVIZ_INSTALLED;
   }
+  if (key=='l'||key=='L') {
+    if (runState == 0) {
+      switchFolder();
+    }
+  }
 }
 
+void switchFolder() {
+  workingDir = new File(sketchPath("")); // or dataPath
+  selectFolder("Select a folder of .txt files:", "selectFolder");
+  actionText = "select\n   folder...";
+}
 
 void selectFolder(File selection) {
   if (selection == null) {
