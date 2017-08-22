@@ -1,0 +1,10 @@
+graph	rankdir=LR, ordering=out fontsize=36
+node	colorscheme=spectral9, shape=square, labelfloat=true
+edge	colorscheme=spectral9, fontcolor=9, labelfloat=true
+nodeLabeled	style=filled, fillcolor=5
+edgeLabeled	penwidth=2, color=9, fontcolor=9
+S	style=filled, fillcolor=7
+E	style=filled, fillcolor=2
+WIN	style=filled, fillcolor=9
+!	penwidth=2, color=1, fontcolor=1
+
