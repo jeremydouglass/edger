@@ -1,4 +1,4 @@
-graph	rankdir=LR, ordering=out fontsize=36
+graph	rankdir=LR, ordering=out, fontsize=36
 node	shape=square, labelfloat=true
 edge	labelfloat=true
 nodeLabeled	fillcolor=5

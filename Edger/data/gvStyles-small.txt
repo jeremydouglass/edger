@@ -1,0 +1,5 @@
+graph	rankdir=LR, ordering=out, penwidth=4, fontsize=36, dpi=36
+node	shape=rect, penwidth=2, fontsize=24, style=filled, fillcolor=lightgray, labelfloat=true
+edge	labelfloat=true, penwidth=6, fontsize=16, splines=ortho
+nodeLabeled	fillcolor=lightgray
+edgeLabeled	color=gray35, fontcolor=gray35, fillcolor=gray35 
