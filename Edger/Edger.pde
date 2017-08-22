@@ -1,7 +1,7 @@
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
- * 2017-08-20
+ * 2017-08-22
  **/
 
 import java.io.ByteArrayInputStream;
@@ -12,6 +12,7 @@ import org.graphstream.algorithm.Toolkit.*;
 File workingDir; 
 String os;
 String actionText;
+String styleFile = "gvStyles.txt";
 boolean GRAPHVIZ_INSTALLED = true;
 int runState;
 StringDict labelCodeDict;
@@ -23,7 +24,7 @@ void setup() {
   println("OS: ", os);
 
   labelCodeDict = new StringDict();
-  loadConfig();
+  loadStyle(styleFile);
 
   switchFolder();
 
@@ -43,7 +44,7 @@ void draw() {
   switch(runState) {
   case 0:
     fill(0, 0, 255);
-    actionText = "refresh\ngraphs";
+    actionText = "REFRESH";
     break;
   case 1:
     fill(255, 0, 0);
@@ -51,7 +52,7 @@ void draw() {
     runState = 2;
     break;
   case 2:
-    loadConfig();
+    loadStyle(styleFile);
     batch(workingDir, ".txt");
     runState = 0;
     delay(500);
@@ -63,11 +64,12 @@ void draw() {
   text(actionText, width/2, 7*height/12);
   pushStyle();
   textSize(10);
-  textAlign(RIGHT, CENTER);
-  if (GRAPHVIZ_INSTALLED) {
-    text("+PNG", width-5, height/4 + 10);
+  textAlign(LEFT, CENTER);
+  if (!GRAPHVIZ_INSTALLED) {
+    text("(no image output)", 5, height/4 + 10);
   }
-  text(workingDir.getName(), width-5, height-10);
+  text("STYLE: " + styleFile, 5, height-25);
+  text("DIR: " + workingDir.getName(), 5, height-10);
   popStyle();
 }
 
@@ -81,6 +83,11 @@ void keyPressed() {
   if (key=='l'||key=='L') {
     if (runState == 0) {
       switchFolder();
+    }
+  }
+  if (key=='s'||key=='S') {
+    if (runState == 0) {
+      switchStyleFile();
     }
   }
 }
@@ -99,6 +106,22 @@ void selectFolder(File selection) {
     println("Selected:\n    " + selection.getAbsolutePath() + "\n");
     workingDir = selection;
     runState = 1;
+  }
+}
+
+void switchStyleFile() {
+  selectInput("Select a Graphviz style file:", "selectStyleFile");
+  actionText = "select\n   folder...";
+}
+
+void selectStyleFile(File selection) {
+  if (selection == null) {
+    println("No selection (canceled or closed)");
+    exit();
+  } else {
+    println("Selected:\n    " + selection.getAbsolutePath() + "\n");
+    styleFile = selection.getAbsolutePath();
+    loadStyle(styleFile);
   }
 }
 
@@ -137,7 +160,7 @@ void batch(File workingDir, String ext) {
           println("Deactivating image output: GRAPHVIZ_INSTALLED = false");
           GRAPHVIZ_INSTALLED = false;
           // display error
-          println("ERROR:     " + e + "\n");          
+          println("ERROR:     " + e + "\n");
         }
       }
       if (os.toLowerCase().startsWith("win") && GRAPHVIZ_INSTALLED) {
@@ -379,22 +402,24 @@ void launchGraph(String filename) {
   }
 }
 
-void loadConfig() {
+void loadStyle(String fname) {
   try {
-    Table table = loadTable("gvStyles.txt", "tsv");
+    Table table = loadTable(fname, "tsv");
     for (TableRow row : table.rows()) {
-      // println(row.getString(0), row.getString(1));
-      labelCodeDict.set(row.getString(0), row.getString(1));
-      // println(labelCodeDict.get(row.getString(0)));
+      if (row.getString(1)!=null && !trim(row.getString(1)).isEmpty()) {
+        // println(row.getString(0), row.getString(1));
+        labelCodeDict.set(row.getString(0), row.getString(1));
+        println(labelCodeDict.get(row.getString(0)));
+      }
     }
   }
   catch (NullPointerException e) {
     println("Config file not found.");
-    loadConfigDefault();
+    loadStyleDefault();
   }
 }
 
-void loadConfigDefault() {
+void loadStyleDefault() {
   labelCodeDict.set("graph", "rankdir=LR, ordering=out fontsize=40");
   labelCodeDict.set("node", "colorscheme=spectral9, shape=square");
   labelCodeDict.set("edge", "colorscheme=spectral9, fontcolor=9");

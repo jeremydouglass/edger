@@ -7,4 +7,3 @@ S	style=filled, fillcolor=7
 E	style=filled, fillcolor=2
 WIN	style=filled, fillcolor=9
 !	penwidth=2, color=1, fontcolor=1
-
