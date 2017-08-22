@@ -133,8 +133,11 @@ void batch(File workingDir, String ext) {
           exec(params);
         } 
         catch (RuntimeException e) {
-          // ignore missing image generator
-          // println("\n" + e);
+          // deactivate image output
+          println("Deactivating image output: GRAPHVIZ_INSTALLED = false");
+          GRAPHVIZ_INSTALLED = false;
+          // display error
+          println("ERROR:     " + e + "\n");          
         }
       }
       if (os.toLowerCase().startsWith("win") && GRAPHVIZ_INSTALLED) {
@@ -372,7 +375,7 @@ void launchGraph(String filename) {
     launch("/Applications/Graphviz.app", filename);
   }
   if (os.toLowerCase().startsWith("win")) {
-    launch("C:/Program Files (x86)/Graphviz*/bin/gvedit.exe", filename);
+    launch("C:/Program Files (x86)/Graphviz2.38/bin/gvedit.exe", filename);
   }
 }
 
