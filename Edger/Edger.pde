@@ -375,6 +375,12 @@ Table tableLoader(String fileName) {
     table.addColumn("comment");
   }
 
+  // trim whitespace
+  for (TableRow row : table.rows()) {
+    for (int i=0; i<row.getColumnCount(); i++) {
+      row.setString(i, trim(row.getString(i)));
+    }
+  }
 
   String headnode = "";
   for (TableRow row : table.rows()) {
