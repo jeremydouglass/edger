@@ -568,9 +568,11 @@ class GraphUtils implements Algorithm {
     list.append("Diameter (undirected): " + diameter); // the largest of all the shortest paths from any node to any other node
     list.append("");
     String[] ddu = {"", ""};
-    for (int i = 0; i < degreeDistributionUndirected.length; i++) {
-      ddu[0] = ddu[0] + i + " ";
-      ddu[1] = ddu[1] + degreeDistributionUndirected[i] + " ";
+    if (degreeDistributionUndirected!=null) {
+      for (int i = 0; i < degreeDistributionUndirected.length; i++) {
+        ddu[0] = ddu[0] + i + " ";
+        ddu[1] = ddu[1] + degreeDistributionUndirected[i] + " ";
+      }
     }
     list.append("Degree Distribution (undirected): ");
     list.append("   degree: " + ddu[0]);
