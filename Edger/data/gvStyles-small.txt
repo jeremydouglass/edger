@@ -3,3 +3,7 @@ node	shape=rect, penwidth=2, fontsize=20, style=filled, fillcolor=grey90, margin
 edge	labelfloat=true, penwidth=3, fontsize=12
 nodeLabeled	fontsize=12, fillcolor=grey70
 edgeLabeled	color=grey40, fontcolor= grey40, fillcolor= grey40 
+
+R	dir=both, arrowhead=tee, arrowtail=odot, style=dashed
+R*	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, constraint=false
+RETURN	dir=both, arrowhead=none, arrowtail=box, style=dashed, constraint=false
