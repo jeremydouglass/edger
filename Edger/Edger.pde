@@ -257,69 +257,64 @@ void makeGraphviz(String outDir, Table table, String fname) {
 
   for (TableRow row : table.rows()) {
     String entry = "  "; // indent
-    boolean isEdge = row.getString(1)!=null && !trim(row.getString(1)).isEmpty();
-    boolean isNode = !isEdge && row.getString(0)!=null && !trim(row.getString(0)).isEmpty();
-    boolean hasLabel = row.getString(2)!=null && !trim(row.getString(2)).isEmpty();
-
-    // column 0 - node / edge source
-    entry = entry + row.getInt(0);
-
-    // column 1 - edge destination
-    if (isEdge) {
-      entry = entry + " -> " + row.getInt(1);
-    } else {
-      entry = entry + "      ";
+    switch(row.getString("type")) {
+    case "NODE":
+      entry = entry + row.getInt(0);
+      break;
+    case "EDGE":
+      entry = entry + row.getInt(0) + " -> " + row.getInt(1);
+      break;
+    case "COMMENT":
+      entry = entry + "// " + row.getString(3);
+      break;
+    case "EMPTY":
+      // entry = entry + "\n";
+      break;
+    default:
+      throw new IllegalArgumentException("Invalid line type: " + row.getString("type"));
     }
 
-    // column 2 - label
+    // attributes
+    StringList attrs = new StringList();
+    boolean hasLabel = row.getString(2)!=null && !trim(row.getString(2)).isEmpty();
     if (hasLabel) {
-      StringList args = new StringList();
+      // print label outside node, leave default in-node label as id
+      attrs.append("xlabel=" + "\"" + row.getString(2).replace("\"", "") + "\"");
+
       // apply custom styles based on end of label text
       for (String labelCode : labelCodeDict.keyArray()) {
         if (row.getString(2)!=null && row.getString(2).endsWith(labelCode)) {
-          args.append(labelCodeDict.get(labelCode));
+          attrs.append(labelCodeDict.get(labelCode));
         }
       }
+
       // apply default label styles if no custom styles
-      if (args.size() == 0) {
-        if (isEdge) {
-          args.append(labelCodeDict.get("edgeLabeled"));
+      if (attrs.size() == 0) {
+        if (row.getString("type").equals("EDGE")) {
+          attrs.append(labelCodeDict.get("edgeLabeled"));
         }
-        if (isNode) {
-          args.append(labelCodeDict.get("nodeLabeled"));
+        if (row.getString("type").equals("NODE")) {
+          attrs.append(labelCodeDict.get("nodeLabeled"));
         }
       }
-      if (row.getString(2).length()>3) {
-        // print long label outside node, leave default node id label
-        args.append("xlabel=" + "\"" + row.getString(2).replace("\"", "") + "\"");
-      } else {
-        // replace default node id with id-plus-label
-        args.append("label=" + "\"" + row.getString(0).replace("\"", "") + " " + row.getString(2).replace("\"", "") + "\"");
-      }
-      // add args to line
-      entry = entry + "\t" + "[ " + join(args.array(), ", ") + " ]";
+      // add attrs to line
+      entry = entry + "\t" + "[ " + join(attrs.array(), ", ") + " ]";
     }
     // end line
-    entry = entry + ";";
+    if(!row.getString("type").equals("EMPTY")){
+      entry = entry + ";";
+    }
 
-    // column 3+ - comments
-    if (table.getColumnCount()>3) {
-      String comment = "";
-      // accumulate comment columns into one string
-      for (int i=3; i<table.getColumnCount(); i++) {
-        if (row.getString(i)!=null && !row.getString(i).equals("")) {
-          comment = comment + row.getString(i) + "\t";
-        }
-      }
-      // add comment if not empty
-      if (!comment.equals("")) {
-        entry = entry + "\t# " + comment.trim();
-      }
+    // line comments
+    boolean hasLineComment = (!row.getString("type").equals("COMMENT") && row.getString(3)!=null && !trim(row.getString(3)).isEmpty());
+    if (hasLineComment) {
+      entry = entry + "\t// " + row.getString(3);
     }
     graphviz.append(entry);
   }
   // end digraph
   graphviz.append("}\n");
+  // display graphviz output
   // for (String s : graphviz) { println(s); }
   saveStrings(outDir, graphviz.array());
 }
@@ -337,7 +332,7 @@ Table loadSparseEdgeListToTable(String fileName) {
     String s = trim(flist.get(i));
     // delete empty lines
     if (s.equals(null) || s.isEmpty()) {
-      flist.remove(i);
+      flist.set(i, " ");
       continue;
     }
     // indent comment-only lines to fourth column regardless of position
@@ -456,12 +451,6 @@ Table loadSparseEdgeListToTable(String fileName) {
     if (!cells[0] && !cells[1] && !cells[2] && !cells[3]) {
       row.setString("type", "EMPTY");
       continue;
-    }
-  }
-
-  for (int i=table.getRowCount()-1; i>=0; i--){
-    if(table.getString(i, "type").equals("COMMENT")){
-      table.removeRow(i);
     }
   }
 
