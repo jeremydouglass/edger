@@ -1,7 +1,6 @@
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
- * 2017-08-27
  **/
 
 import java.io.ByteArrayInputStream;
@@ -142,7 +141,7 @@ void batch(File workingDir, String ext) {
   for (int i = 0; i < files.length; i++) {
     String fname = files[i].getName();
     if (fname.toLowerCase().endsWith(ext)) {
-      Table fileTable = tableLoader(files[i].getAbsolutePath());
+      Table fileTable = loadSparseEdgeListToTable(files[i].getAbsolutePath());
       // GV
       String outGraphviz = files[i].getParent() + "/gv/" + fname + ".gv";
       makeGraphviz(outGraphviz, fileTable, fname);
@@ -182,8 +181,10 @@ void batch(File workingDir, String ext) {
       gu.init(graph);
       gu.compute();
 
-      // display statistics and save to file
-      println(gu);      
+      // display statistics
+      // println(gu);
+
+      // save statistics to file
       String outLog = files[i].getParent() + "/log/" + fname + ".log.txt";
       gu.saveLog(outLog);
 
@@ -207,7 +208,7 @@ void batch(File workingDir, String ext) {
 }
 
 void makeTGF(String outDir, String file) {
-  Table table = tableLoader(file);
+  Table table = loadSparseEdgeListToTable(file);
   makeTGF(outDir, table);
 }
 void makeTGF(String outDir, Table table) {
@@ -244,7 +245,7 @@ void makeTGF(String outDir, Table table) {
 
 
 void makeGraphviz(String outDir, String file, String fname) {
-  Table table = tableLoader(file);
+  Table table = loadSparseEdgeListToTable(file);
   makeGraphviz(outDir, table, fname);
 }
 void makeGraphviz(String outDir, Table table, String fname) {
@@ -329,24 +330,19 @@ void makeGraphviz(String outDir, Table table, String fname) {
  * pre-processes it for graph parsing (empty rows, padding)
  * and returns the filestring as a Table.
  */
-Table tableLoader(String fileName) {
-
+Table loadSparseEdgeListToTable(String fileName) {
   // clean file line strings
   StringList flist = new StringList(loadStrings(fileName));
   for (int i=flist.size() - 1; i >= 0; i--) {
     String s = trim(flist.get(i));
     // delete empty lines
     if (s.equals(null) || s.isEmpty()) {
-      // println("empty: ", s);
       flist.remove(i);
       continue;
-    } else {
-      // strip non-empty comment-only lines beginning with #
-      if (s.charAt(0)=='#') {
-        // flist.set(i, s);
-        flist.remove(i);
-        continue;
-      }
+    }
+    // indent comment-only lines to fourth column regardless of position
+    if (trim(s).charAt(0)=='#' || trim(s).startsWith("//")) {
+      flist.set(i, "\t\t\t" + trim(s));
     }
   }
   String fileString = join(flist.array(), "\n");
@@ -361,18 +357,57 @@ Table tableLoader(String fileName) {
     ie.printStackTrace();
   }
 
+  // collapse extra column contents back to the 4th (comment) column
+  for (TableRow row : table.rows()) {
+    StringList cs = new StringList();
+    // list comment columns
+    for (int col=3; col<row.getColumnCount()-1; col++) {
+      if (row.getString(col)==null || row.getString(col).equals("")) {
+        continue;
+      } else {
+        cs.append(row.getString(col));
+      }
+    }
+    // combine comment columns
+    String c = trim(join(cs.array(), " | "));
+    // trim comment markers
+    while (c.startsWith("//") || c.startsWith("#")) {
+      if (c.startsWith("//")) {
+        c = trim(c.substring(2));
+      } else if (c.startsWith("#")) {
+        c = trim(c.substring(1));
+      }
+    }
+    // trim multi-line comment style on a single line
+    if (c.startsWith("/**") && c.endsWith("**/")) {
+      c = c.substring(3, c.length() - 3);
+    }
+    row.setString(3, c);
+  }
+
+  // delete all extra columns
+  table.setColumnCount(4);
+
   // add full columns
   if (table.getColumnCount()<1) {
     table.addColumn("source");
+  } else {
+    table.setColumnTitle(0, "source");
   }
   if (table.getColumnCount()<2) {
     table.addColumn("destination");
+  } else {
+    table.setColumnTitle(1, "destination");
   }
   if (table.getColumnCount()<3) {
     table.addColumn("label");
+  } else {
+    table.setColumnTitle(2, "label");
   }
   if (table.getColumnCount()<4) {
     table.addColumn("comment");
+  } else {
+    table.setColumnTitle(3, "comment");
   }
 
   // trim whitespace
@@ -382,20 +417,55 @@ Table tableLoader(String fileName) {
     }
   }
 
+  table.addColumn("type", Table.STRING);
+
   String headnode = "";
   for (TableRow row : table.rows()) {
-    // fill in duplicate origins if origin / node not specified
-    if (row.getString(0)==null || row.getString(0).equals("")) {
-      // load cached origin
+    boolean[] cells = new boolean[4];
+    for (int i=0; i<cells.length; i++) {
+      cells[i] = !(row.getString(i)==null || row.getString(i).equals(""));
+    }
+    // update headnode
+    if (cells[0]) {
+      headnode=row.getString(0);
+    }
+    if (cells[0] && !cells[1]) {
+      row.setString("type", "NODE");
+      continue;
+    }
+    if (cells[0] && cells[1]) {
+      row.setString("type", "EDGE");
+      continue;
+    }
+    if (!cells[0] && cells[1]) {
+      // sparse edge -- fill in with previous headnode
       if (!headnode.equals("")) {
         row.setString(0, headnode);
+        row.setString("type", "EDGE");
+      } else {
+        row.setString("type", "ERROR");
+        row.print();
+        throw new RuntimeException("Sparse edge with no headnode! In file: " + fileName);
       }
-    } else {
-      // cache origin
-      headnode=row.getString(0);
+      continue;
+    }
+    if (!cells[0] && !cells[1] && !cells[2] && cells[3]) {
+      row.setString("type", "COMMENT");
+      continue;
+    }
+    if (!cells[0] && !cells[1] && !cells[2] && !cells[3]) {
+      row.setString("type", "EMPTY");
+      continue;
     }
   }
 
+  for (int i=table.getRowCount()-1; i>=0; i--){
+    if(table.getString(i, "type").equals("COMMENT")){
+      table.removeRow(i);
+    }
+  }
+
+  table.print();
   return(table);
 }
 
