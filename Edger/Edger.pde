@@ -1,7 +1,7 @@
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
- * 2017-08-22
+ * 2017-08-27
  **/
 
 import java.io.ByteArrayInputStream;
@@ -409,15 +409,16 @@ void launchGraph(String filename) {
 }
 
 void loadStyle(String fname) {
+  StringDict newlabelCodeDict = new StringDict();
   try {
     Table table = loadTable(fname, "tsv");
     for (TableRow row : table.rows()) {
       if (row.getString(1)!=null && !trim(row.getString(1)).isEmpty()) {
         // println(row.getString(0), row.getString(1));
-        labelCodeDict.set(row.getString(0), row.getString(1));
-        println(labelCodeDict.get(row.getString(0)));
+        newlabelCodeDict.set(row.getString(0), row.getString(1));
       }
     }
+    labelCodeDict = newlabelCodeDict;
   }
   catch (NullPointerException e) {
     println("Config file not found.");
@@ -426,15 +427,17 @@ void loadStyle(String fname) {
 }
 
 void loadStyleDefault() {
-  labelCodeDict.set("graph", "rankdir=LR, ordering=out fontsize=40");
-  labelCodeDict.set("node", "colorscheme=spectral9, shape=square");
-  labelCodeDict.set("edge", "colorscheme=spectral9, fontcolor=9");
-  labelCodeDict.set("nodeLabeled", "style=filled, fillcolor=5");
-  labelCodeDict.set("edgeLabeled", "penwidth=2, color=9, fontcolor=9");
-  labelCodeDict.set("S", "style=filled, fillcolor=7");
-  labelCodeDict.set("E", "style=filled, fillcolor=2");
-  labelCodeDict.set("WIN", "style=filled, fillcolor=9");
-  labelCodeDict.set("!", "penwidth=2, color=1, fontcolor=1");
+  StringDict newlabelCodeDict = new StringDict();
+  newlabelCodeDict.set("graph", "rankdir=LR, ordering=out fontsize=40");
+  newlabelCodeDict.set("node", "colorscheme=spectral9, shape=square");
+  newlabelCodeDict.set("edge", "colorscheme=spectral9, fontcolor=9");
+  newlabelCodeDict.set("nodeLabeled", "style=filled, fillcolor=5");
+  newlabelCodeDict.set("edgeLabeled", "penwidth=2, color=9, fontcolor=9");
+  newlabelCodeDict.set("S", "style=filled, fillcolor=7");
+  newlabelCodeDict.set("E", "style=filled, fillcolor=2");
+  newlabelCodeDict.set("WIN", "style=filled, fillcolor=9");
+  newlabelCodeDict.set("!", "penwidth=2, color=1, fontcolor=1");
+  labelCodeDict = newlabelCodeDict;
 }
 
 Graph loadGraphStream(String fname, Table table) {
