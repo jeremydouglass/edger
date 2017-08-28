@@ -1,5 +1,5 @@
 graph	rankdir=LR, ordering=out, fontsize=36
-node	shape=square, labelfloat=true
+node	shape=square, fontsize=20, labelfloat=true
 edge	labelfloat=true
 nodeLabeled	fillcolor=5
 edgeLabeled	fillcolor=5 
