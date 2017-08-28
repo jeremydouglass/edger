@@ -22,12 +22,11 @@ boolean GRAPHVIZ_INSTALLED = true;
 int runState;
 StringDict labelCodeDict;
 StringDict settingsDict;
+boolean ignoreBadRows = false;
 
 void setup() { 
   size(200, 200);
-  println("EDGER");
   os = System.getProperty("os.name");
-  println("OS: ", os);
 
   settingsDict = new StringDict();
   loadSettings(settingsFile);
@@ -43,7 +42,7 @@ void setup() {
       workingDir = new File(sketchPath() + "/data");
     }
   }
-  
+
   stylePath = Paths.get(settingsDict.get("styles"));
   if (Files.isRegularFile(stylePath)) {
     styleFile = stylePath.toFile();
@@ -56,7 +55,11 @@ void setup() {
     }
   }
 
-  println(styleFile.getName());
+  println("EDGER");
+  println("   OS: ", os);
+  println("  Dir: ", workingDir.getName());
+  println("Style: ", styleFile.getName());
+
   labelCodeDict = new StringDict();
   loadStyles(styleFile);
 
@@ -210,7 +213,7 @@ void selectStyleFile(File selection) {
 
 void batch(File workingDir, String ext) {
   File [] files = workingDir.listFiles();
-  if(files == null || files.length == 0){
+  if (files == null || files.length == 0) {
     println("No files found.");
     return;
   }
@@ -374,6 +377,8 @@ void makeGraphviz(String outDir, Table table, String fname) {
     case "EMPTY":
       // entry = entry + "\n";
       break;
+    case "ERROR":
+      continue;
     default:
       throw new IllegalArgumentException("Invalid line type: " + row.getString("type"));
     }
@@ -525,7 +530,9 @@ Table loadSparseEdgeListToTable(String fileName) {
   table.addColumn("type", Table.STRING);
 
   String headnode = "";
+  int counter = 0;
   for (TableRow row : table.rows()) {
+    counter++;
     boolean[] cells = new boolean[4];
     for (int i=0; i<cells.length; i++) {
       cells[i] = !(row.getString(i)==null || row.getString(i).equals(""));
@@ -554,6 +561,18 @@ Table loadSparseEdgeListToTable(String fileName) {
       }
       continue;
     }
+    if (!cells[0] && !cells[1] && cells[2]) {
+      // sparse label -- fill in node with previous headnode
+      if (!headnode.equals("")) {
+        row.setString(0, headnode);
+        row.setString("type", "NODE");
+      } else {
+        row.setString("type", "ERROR");
+        row.print();
+        throw new RuntimeException("Sparse label with no headnode! In file: " + fileName);
+      }
+      continue;
+    }    
     if (!cells[0] && !cells[1] && !cells[2] && cells[3]) {
       row.setString("type", "COMMENT");
       continue;
@@ -561,6 +580,27 @@ Table loadSparseEdgeListToTable(String fileName) {
     if (!cells[0] && !cells[1] && !cells[2] && !cells[3]) {
       row.setString("type", "EMPTY");
       continue;
+    }
+    
+    // catch specific bad data
+    if (!cells[0] && !cells[1] && cells[2]) {
+      String err = "Label with no node or edge!\n  In file: " + fileName + "\n  on line: " + counter;
+      if (ignoreBadRows) {
+        println(err);
+        row.setString("type", "ERROR");
+        continue;
+      } else {
+        throw new RuntimeException(err);
+      }
+    }
+    
+    // catch general bad data
+    String err = "Row of unknown type!\n  In file: " + fileName + "\n  on line: " + counter;
+    if (ignoreBadRows) {
+      println(err);
+      row.setString("type", "ERROR");
+    } else {
+      throw new RuntimeException(err);
     }
   }
 
