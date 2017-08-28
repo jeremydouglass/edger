@@ -11,10 +11,12 @@ import org.graphstream.algorithm.Toolkit.*;
 File workingDir; 
 String os;
 String actionText;
-String styleFile = "gvStyles.txt";
+File styleFile;
+String settingsFile = "settings.txt";
 boolean GRAPHVIZ_INSTALLED = true;
 int runState;
 StringDict labelCodeDict;
+StringDict settingsDict;
 
 void setup() { 
   size(200, 100);
@@ -22,8 +24,14 @@ void setup() {
   os = System.getProperty("os.name");
   println("OS: ", os);
 
+  settingsDict = new StringDict();
+  loadSettings(settingsFile);
+
+  workingDir = new File(settingsDict.get("folder", "data"));
+
+  styleFile = new File(settingsDict.get("styles", "settings.txt"));
   labelCodeDict = new StringDict();
-  loadStyle(styleFile);
+  loadStyles(styleFile);
 
   switchFolder();
 
@@ -51,7 +59,7 @@ void draw() {
     runState = 2;
     break;
   case 2:
-    loadStyle(styleFile);
+    loadStyles(styleFile);
     batch(workingDir, ".txt");
     runState = 0;
     delay(500);
@@ -67,7 +75,7 @@ void draw() {
   if (!GRAPHVIZ_INSTALLED) {
     text("(no image output)", 5, height/4 + 10);
   }
-  text("STYLE: " + styleFile, 5, height-25);
+  text("STYLE: " + styleFile.getName(), 5, height-25);
   text("DIR: " + workingDir.getName(), 5, height-10);
   popStyle();
 }
@@ -92,19 +100,23 @@ void keyPressed() {
 }
 
 void switchFolder() {
-  workingDir = new File(sketchPath("")); // or dataPath
-  selectFolder("Select a folder of .txt files:", "selectFolder");
+  selectFolder("Select a folder of .txt files:", "selectFolder", workingDir);
   actionText = "select\n   folder...";
 }
 
 void selectFolder(File selection) {
   if (selection == null) {
     println("No selection (canceled or closed)");
-    exit();
+    // exit();
   } else {
     println("Selected:\n    " + selection.getAbsolutePath() + "\n");
     workingDir = selection;
-    runState = 1;
+
+    settingsDict.set("folder", selection.getAbsolutePath());
+    PrintWriter output = createWriter(settingsFile);
+    settingsDict.write(output);
+    output.flush();
+    output.close();
   }
 }
 
@@ -116,11 +128,18 @@ void switchStyleFile() {
 void selectStyleFile(File selection) {
   if (selection == null) {
     println("No selection (canceled or closed)");
-    exit();
+    // exit();
   } else {
     println("Selected:\n    " + selection.getAbsolutePath() + "\n");
-    styleFile = selection.getAbsolutePath();
-    loadStyle(styleFile);
+    styleFile = selection;
+
+    settingsDict.set("styles", selection.getAbsolutePath());
+    PrintWriter output = createWriter(settingsFile);
+    settingsDict.write(output);
+    output.flush();
+    output.close();    
+
+    loadStyles(styleFile);
   }
 }
 
@@ -168,8 +187,11 @@ void batch(File workingDir, String ext) {
           exec(params);
         } 
         catch (RuntimeException e) {
-          // ignore missing image generator
-          // println("\n" + e);
+          // deactivate image output
+          println("Deactivating image output: GRAPHVIZ_INSTALLED = false");
+          GRAPHVIZ_INSTALLED = false;
+          // display error
+          println("ERROR:     " + e + "\n");
         }
       }
 
@@ -251,9 +273,22 @@ void makeGraphviz(String outDir, String file, String fname) {
 void makeGraphviz(String outDir, Table table, String fname) {
   StringList graphviz = new StringList(); // GV graphviz dot file lines
   graphviz.append("digraph g{");
-  graphviz.append("  graph [" + labelCodeDict.get("graph") + " label=" + "\"" + fname + "\"" + "];");
-  graphviz.append("  node  [" + labelCodeDict.get("node") + "];");
-  graphviz.append("  edge  [" + labelCodeDict.get("edge") + "];");
+  String g = "";
+  if (!"".equals(fname)) {
+    g = g + " label=" + "\"" + fname + "\" ";
+  }
+  if (!labelCodeDict.get("graph", "").isEmpty()) {
+    g = g + labelCodeDict.get("graph", "");
+  }
+  if (!"".equals(g)) {
+    graphviz.append("  graph [" + g + "];");
+  }
+  if (!labelCodeDict.get("node", "").isEmpty()) {
+    graphviz.append("  node  [" + labelCodeDict.get("node") + "];");
+  }
+  if (!labelCodeDict.get("edge", "").isEmpty()) {
+    graphviz.append("  edge  [" + labelCodeDict.get("edge") + "];");
+  }
 
   for (TableRow row : table.rows()) {
     String entry = "  "; // indent
@@ -291,17 +326,23 @@ void makeGraphviz(String outDir, Table table, String fname) {
       // apply default label styles if no custom styles
       if (attrs.size() == 0) {
         if (row.getString("type").equals("EDGE")) {
-          attrs.append(labelCodeDict.get("edgeLabeled"));
+          String el = labelCodeDict.get("edgeLabeled", "");
+          if (!el.isEmpty()) {
+            attrs.append(el);
+          }
         }
         if (row.getString("type").equals("NODE")) {
-          attrs.append(labelCodeDict.get("nodeLabeled"));
+          String nl = labelCodeDict.get("nodeLabeled", "");
+          if (!nl.isEmpty()) {
+            attrs.append(nl);
+          }
         }
       }
       // add attrs to line
       entry = entry + "\t" + "[ " + join(attrs.array(), ", ") + " ]";
     }
     // end line
-    if(!row.getString("type").equals("EMPTY")){
+    if (!row.getString("type").equals("EMPTY")) {
       entry = entry + ";";
     }
 
@@ -454,7 +495,7 @@ Table loadSparseEdgeListToTable(String fileName) {
     }
   }
 
-  table.print();
+  // table.print();
   return(table);
 }
 
@@ -467,36 +508,47 @@ void launchGraph(String filename) {
   }
 }
 
-void loadStyle(String fname) {
+void loadStyles(File file) {
   StringDict newlabelCodeDict = new StringDict();
   try {
-    Table table = loadTable(fname, "tsv");
+    Table table = loadTable(file.getAbsolutePath(), "tsv");
     for (TableRow row : table.rows()) {
-      if (row.getString(1)!=null && !trim(row.getString(1)).isEmpty()) {
+      if (!row.getString(0).isEmpty() && !row.getString(1).isEmpty()) {
         // println(row.getString(0), row.getString(1));
         newlabelCodeDict.set(row.getString(0), row.getString(1));
       }
     }
     labelCodeDict = newlabelCodeDict;
+    settingsDict.set("styles", file.getAbsolutePath());
+    PrintWriter output = createWriter(settingsFile);
+    settingsDict.write(output);
+    output.flush();
+    output.close();
   }
   catch (NullPointerException e) {
     println("Config file not found.");
-    loadStyleDefault();
   }
+  newlabelCodeDict.print();
 }
 
-void loadStyleDefault() {
-  StringDict newlabelCodeDict = new StringDict();
-  newlabelCodeDict.set("graph", "rankdir=LR, ordering=out fontsize=40");
-  newlabelCodeDict.set("node", "colorscheme=spectral9, shape=square");
-  newlabelCodeDict.set("edge", "colorscheme=spectral9, fontcolor=9");
-  newlabelCodeDict.set("nodeLabeled", "style=filled, fillcolor=5");
-  newlabelCodeDict.set("edgeLabeled", "penwidth=2, color=9, fontcolor=9");
-  newlabelCodeDict.set("S", "style=filled, fillcolor=7");
-  newlabelCodeDict.set("E", "style=filled, fillcolor=2");
-  newlabelCodeDict.set("WIN", "style=filled, fillcolor=9");
-  newlabelCodeDict.set("!", "penwidth=2, color=1, fontcolor=1");
-  labelCodeDict = newlabelCodeDict;
+void loadSettings(String fname) {
+  StringDict newSettingsDict = new StringDict();
+  try {
+    Table table = loadTable(fname, "tsv");
+    for (TableRow row : table.rows()) {
+      if (row.getString(1)!=null && !trim(row.getString(1)).isEmpty()) {
+        // println(row.getString(0), row.getString(1));
+        newSettingsDict.set(row.getString(0), row.getString(1));
+      }
+    }
+    settingsDict = newSettingsDict;
+  }
+  catch (NullPointerException e) {
+    println("Settings not found! Falling back to defaults.");
+    newSettingsDict.set("folder", "data");
+    newSettingsDict.set("styles", "gvBlank.txt");
+    settingsDict = newSettingsDict;
+  }
 }
 
 Graph loadGraphStream(String fname, Table table) {
