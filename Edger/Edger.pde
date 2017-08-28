@@ -19,7 +19,7 @@ StringDict labelCodeDict;
 StringDict settingsDict;
 
 void setup() { 
-  size(200, 100);
+  size(200, 200);
   println("EDGER");
   os = System.getProperty("os.name");
   println("OS: ", os);
@@ -33,55 +33,93 @@ void setup() {
   labelCodeDict = new StringDict();
   loadStyles(styleFile);
 
-  switchFolder();
-
   textAlign(CENTER, CENTER);
   noStroke();
 }
 
 void draw() {
-  background(0);
+  background(192);
+  color runc = color(0, 0, 0);
 
+  pushStyle();
   fill(0);
-  rect(0, 0, width, height/4);
+  rect(0, 0, width, height/8);
   fill(255);
   textSize(18);
-  text("EDGER", width/2, height/8);
+  text("EDGER", width/2, height/16);
+  popStyle();
 
   switch(runState) {
   case 0:
-    fill(0, 0, 255);
-    actionText = "REFRESH";
+    runc = color(0, 0, 255);
+    actionText = "MAKE GRAPHS";
     break;
   case 1:
-    fill(255, 0, 0);
+    runc = color(255, 0, 0);
     actionText = "   running...";
     runState = 2;
     break;
   case 2:
+    runc = color(255, 255, 0);
     loadStyles(styleFile);
     batch(workingDir, ".txt");
     runState = 0;
     delay(500);
     break;
   }
-  rect(0, height/4, width, 3*height/4);
-  fill(255);
-  textSize(14);
-  text(actionText, width/2, 7*height/12);
+
   pushStyle();
-  textSize(10);
-  textAlign(LEFT, CENTER);
+  translate(0, height/8);
+  fill(runc);
+  rect(0, 0, width, 3*height/8);
+  fill(255);
+  textSize(20);
+  text(actionText, width/2, 3*height/16);
+  noFill();
+  stroke(255);
+  rect(10, 10, width-20, 3*height/8-20, 7);
+  popStyle();
+
+  pushStyle();
+  translate(0, 3*height/8);
+  fill(64);
+  rect(0, 0, width, height/4);
   if (!GRAPHVIZ_INSTALLED) {
     text("(no image output)", 5, height/4 + 10);
   }
-  text("STYLE: " + styleFile.getName(), 5, height-25);
-  text("DIR: " + workingDir.getName(), 5, height-10);
+  fill(255);
+  textSize(12);
+  textAlign(LEFT, CENTER);
+  text("DIR: " + workingDir.getName(), 15, height/8);
+  noFill();
+  stroke(255);
+  rect(10, 10, width-20, height/4-20, 7);
+  popStyle();
+
+  pushStyle();
+  translate(0, height/4);
+  fill(96);
+  rect(0, 0, width, height/4);
+  fill(255);
+  textSize(12);
+  textAlign(LEFT, CENTER);
+  text("STYLE: " + styleFile.getName(), 15, height/8);
+  noFill();
+  stroke(255);
+  rect(10, 10, width-20, height/4-20, 7);
   popStyle();
 }
 
 void mouseClicked() {
-  runState = 1;
+  if (mouseY < height/2) {
+    runState = 1;
+  }
+  if (mouseY > height/2 && mouseY < 3*height/4) {
+    switchFolder();
+  }
+  if (mouseY > 3*height/4) {
+    switchStyleFile();
+  }
 }
 void keyPressed() {
   if (key=='p'||key=='P') {
