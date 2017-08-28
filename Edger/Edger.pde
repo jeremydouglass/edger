@@ -7,10 +7,15 @@ import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import org.graphstream.graph.*;
 import org.graphstream.algorithm.Toolkit.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
+Path workingPath;
 File workingDir; 
 String os;
 String actionText;
+Path stylePath;
 File styleFile;
 String settingsFile = "settings.txt";
 boolean GRAPHVIZ_INSTALLED = true;
@@ -27,9 +32,31 @@ void setup() {
   settingsDict = new StringDict();
   loadSettings(settingsFile);
 
-  workingDir = new File(settingsDict.get("folder", "data"));
+  workingPath = Paths.get(settingsDict.get("folder"));
+  if (Files.isDirectory(workingPath)) {
+    workingDir = workingPath.toFile();
+  } else {
+    workingPath = Paths.get(sketchPath() + "/" + settingsDict.get("folder"));
+    if (Files.isDirectory(workingPath)) {
+      workingDir = workingPath.toFile();
+    } else {
+      workingDir = new File(sketchPath() + "/data");
+    }
+  }
+  
+  stylePath = Paths.get(settingsDict.get("styles"));
+  if (Files.isRegularFile(stylePath)) {
+    styleFile = stylePath.toFile();
+  } else {
+    stylePath = Paths.get(sketchPath() + "/" + settingsDict.get("styles"));
+    if (Files.isRegularFile(stylePath)) {
+      styleFile = stylePath.toFile();
+    } else {
+      styleFile = new File(sketchPath() + "/" + "gvStyles.txt");
+    }
+  }
 
-  styleFile = new File(settingsDict.get("styles", "settings.txt"));
+  println(styleFile.getName());
   labelCodeDict = new StringDict();
   loadStyles(styleFile);
 
@@ -183,6 +210,10 @@ void selectStyleFile(File selection) {
 
 void batch(File workingDir, String ext) {
   File [] files = workingDir.listFiles();
+  if(files == null || files.length == 0){
+    println("No files found.");
+    return;
+  }
   Graph graph;
   GraphUtils gu;
 
@@ -557,16 +588,11 @@ void loadStyles(File file) {
       }
     }
     labelCodeDict = newlabelCodeDict;
-    settingsDict.set("styles", file.getAbsolutePath());
-    PrintWriter output = createWriter(settingsFile);
-    settingsDict.write(output);
-    output.flush();
-    output.close();
   }
   catch (NullPointerException e) {
     println("Config file not found.");
   }
-  newlabelCodeDict.print();
+  // newlabelCodeDict.print();
 }
 
 void loadSettings(String fname) {
