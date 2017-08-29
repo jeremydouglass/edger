@@ -19,6 +19,7 @@ Path stylePath;
 File styleFile;
 String settingsFile = "settings.txt";
 boolean GRAPHVIZ_INSTALLED = true;
+boolean TGF_OUTPUT = true;
 int runState;
 StringDict labelCodeDict;
 StringDict settingsDict;
@@ -165,6 +166,11 @@ void keyPressed() {
       switchStyleFile();
     }
   }
+  if (key=='t'||key=='T') {
+    if (runState == 0) {
+      TGF_OUTPUT = !TGF_OUTPUT;
+    }
+  }
 }
 
 void switchFolder() {
@@ -235,10 +241,14 @@ void batch(File workingDir, String ext) {
       Table fileTable = loadSparseEdgeListToTable(files[i].getAbsolutePath());
       // GV
       String outGraphviz = files[i].getParent() + "/gv/" + fname + ".gv";
-      makeGraphviz(outGraphviz, fileTable, fname);
-      // TGF
-      String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
-      makeTGF(outTGF, fileTable);
+      makeGraphviz(outGraphviz, fileTable, fname, true);
+
+      if (TGF_OUTPUT) {
+        // TGF
+        String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
+        makeTGF(outTGF, fileTable);
+      }
+
       // PNG
       if (os.equals("Mac OS X") && GRAPHVIZ_INSTALLED) {
         try {
