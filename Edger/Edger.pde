@@ -18,8 +18,9 @@ String actionText;
 Path stylePath;
 File styleFile;
 String settingsFile = "settings.txt";
-boolean GRAPHVIZ_INSTALLED = true;
-boolean TGF_OUTPUT = true;
+boolean graphvizInstalled = true;
+boolean tgfOutput = true;
+boolean graphDirected = true;
 int runState;
 StringDict labelCodeDict;
 StringDict settingsDict;
@@ -115,7 +116,7 @@ void draw() {
   translate(0, 3*height/8);
   fill(64);
   rect(0, 0, width, height/4);
-  if (!GRAPHVIZ_INSTALLED) {
+  if (!graphvizInstalled) {
     text("(no image output)", 5, height/4 + 10);
   }
   fill(255);
@@ -154,21 +155,33 @@ void mouseClicked() {
 }
 void keyPressed() {
   if (key=='p'||key=='P') {
-    GRAPHVIZ_INSTALLED = !GRAPHVIZ_INSTALLED;
+    if (runState == 0) {
+      graphvizInstalled = !graphvizInstalled;
+      println("Graphviz export:", graphvizInstalled);
+    }
   }
   if (key=='l'||key=='L') {
     if (runState == 0) {
+      println("Load working folder:");
       switchFolder();
     }
   }
   if (key=='s'||key=='S') {
     if (runState == 0) {
+      println("Load style file:");
       switchStyleFile();
     }
   }
   if (key=='t'||key=='T') {
     if (runState == 0) {
-      TGF_OUTPUT = !TGF_OUTPUT;
+      tgfOutput = !tgfOutput;
+      println("TGF output: ", tgfOutput);
+    }
+  }
+  if (key=='d'||key=='D') {
+    if (runState == 0) {
+      graphDirected = !graphDirected;
+      println("Graphviz directed: ", graphDirected);
     }
   }
 }
@@ -241,37 +254,43 @@ void batch(File workingDir, String ext) {
       Table fileTable = loadSparseEdgeListToTable(files[i].getAbsolutePath());
       // GV
       String outGraphviz = files[i].getParent() + "/gv/" + fname + ".gv";
-      makeGraphviz(outGraphviz, fileTable, fname, true);
+      makeGraphviz(outGraphviz, fileTable, fname, graphDirected);
 
-      if (TGF_OUTPUT) {
+      if (tgfOutput) {
         // TGF
         String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
         makeTGF(outTGF, fileTable);
       }
 
       // PNG
-      if (os.equals("Mac OS X") && GRAPHVIZ_INSTALLED) {
+      String graphvizBinary = "";
+      if (graphDirected) {
+        graphvizBinary="/usr/local/bin/dot";
+      } else {
+        graphvizBinary="/usr/local/bin/neato";
+      }
+      if (os.equals("Mac OS X") && graphvizInstalled) {
         try {
-          String[] params = { "/usr/local/bin/dot", "-Tpng", "-O", outGraphviz }; // e.g. dot -Tpng -O  *.gv
+          String[] params = { graphvizBinary, "-Tpng", "-O", outGraphviz }; // e.g. dot -Tpng -O  *.gv
           exec(params);
         } 
         catch (RuntimeException e) {
           // deactivate image output
-          println("Deactivating image output: GRAPHVIZ_INSTALLED = false");
-          GRAPHVIZ_INSTALLED = false;
+          println("Deactivating image output: graphvizInstalled = false");
+          graphvizInstalled = false;
           // display error
           println("ERROR:     " + e + "\n");
         }
       }
-      if (os.toLowerCase().startsWith("win") && GRAPHVIZ_INSTALLED) {
+      if (os.toLowerCase().startsWith("win") && graphvizInstalled) {
         try {
           String[] params = { "C:/Program Files (x86)/Graphviz*/bin/dot.exe", "-Tpng", "-O", outGraphviz };
           exec(params);
         } 
         catch (RuntimeException e) {
           // deactivate image output
-          println("Deactivating image output: GRAPHVIZ_INSTALLED = false");
-          GRAPHVIZ_INSTALLED = false;
+          println("Deactivating image output: graphvizInstalled = false");
+          graphvizInstalled = false;
           // display error
           println("ERROR:     " + e + "\n");
         }
@@ -348,13 +367,20 @@ void makeTGF(String outDir, Table table) {
 }
 
 
-void makeGraphviz(String outDir, String file, String fname) {
+void makeGraphviz(String outDir, String file, String fname, boolean directed) {
   Table table = loadSparseEdgeListToTable(file);
-  makeGraphviz(outDir, table, fname);
+  makeGraphviz(outDir, table, fname, directed);
 }
-void makeGraphviz(String outDir, Table table, String fname) {
+void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
   StringList graphviz = new StringList(); // GV graphviz dot file lines
-  graphviz.append("digraph g{");
+  String edgeType = "";
+  if (directed) {
+    graphviz.append("digraph g{");
+    edgeType = "->";
+  } else {
+    graphviz.append("graph g{");
+    edgeType = "--";
+  }
   String g = "";
   if (!"".equals(fname)) {
     g = g + " label=" + "\"" + fname + "\" ";
@@ -379,7 +405,7 @@ void makeGraphviz(String outDir, Table table, String fname) {
       entry = entry + row.getInt(0);
       break;
     case "EDGE":
-      entry = entry + row.getInt(0) + " -> " + row.getInt(1);
+      entry = entry + row.getInt(0) + " " + edgeType + " " + row.getInt(1);
       break;
     case "COMMENT":
       entry = entry + "// " + row.getString(3);
@@ -591,7 +617,7 @@ Table loadSparseEdgeListToTable(String fileName) {
       row.setString("type", "EMPTY");
       continue;
     }
-    
+
     // catch specific bad data
     if (!cells[0] && !cells[1] && cells[2]) {
       String err = "Label with no node or edge!\n  In file: " + fileName + "\n  on line: " + counter;
@@ -603,7 +629,7 @@ Table loadSparseEdgeListToTable(String fileName) {
         throw new RuntimeException(err);
       }
     }
-    
+
     // catch general bad data
     String err = "Row of unknown type!\n  In file: " + fileName + "\n  on line: " + counter;
     if (ignoreBadRows) {
