@@ -28,10 +28,32 @@ int runState;
 StringDict labelCodeDict;
 StringDict settingsDict;
 boolean ignoreBadRows = false;
+boolean exitWhenDone;
 
 void setup() { 
   size(200, 200);
   os = System.getProperty("os.name");
+
+  // detect command line invocation -- requires a throwaway
+  // placeholder argument, e.g. "exit"
+  // e.g.
+  //     processing-java --sketch=`pwd`/Edger --run exit
+  if (args != null) {
+
+    // default run-and-quit command line behavior
+    runState = 1;
+    exitWhenDone = true;
+    // override with arguments
+    for (String arg : args) {
+      if ("nomake".equals(arg)) {
+        runState=0;
+      }
+      if ("noexit".equals(arg)) {
+        // 
+        exitWhenDone=false;
+      }
+    }
+  }
 
   settingsDict = new StringDict();
   loadSettings(settingsFile);
@@ -89,6 +111,9 @@ void draw() {
   case 0:
     runc = color(0, 0, 255);
     actionText = "MAKE GRAPHS";
+    if (exitWhenDone) {
+      exit();
+    }
     break;
   case 1:
     runc = color(255, 0, 0);
