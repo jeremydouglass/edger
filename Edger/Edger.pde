@@ -20,6 +20,7 @@ File styleFile;
 String settingsFile = "settings.txt";
 boolean graphvizInstalled = true;
 boolean tgfOutput = true;
+boolean jekyllOutput = false;
 boolean graphDirected = true;
 int runState;
 StringDict labelCodeDict;
@@ -184,6 +185,12 @@ void keyPressed() {
       println("Graphviz directed: ", graphDirected);
     }
   }
+  if (key=='j'||key=='J') {
+    if (runState == 0) {
+      jekyllOutput = !jekyllOutput;
+      println("Jekyll output: ", jekyllOutput);
+    }
+  }
 }
 
 void switchFolder() {
@@ -261,6 +268,18 @@ void batch(File workingDir, String ext) {
         String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
         makeTGF(outTGF, fileTable);
       }
+      
+      if (jekyllOutput) {
+        // Jekyll Markdown files
+        String jfname = fname.split(" ")[0];
+        if (fname.length() > 5){
+          jfname = fname.substring(0, 5);
+        } else {
+          jfname = fname;
+        }
+        String outjmd = files[i].getParent() + "/jmd/" + jfname + ".md";
+        makeJekyllCollectionsMarkdown(outjmd);
+      }
 
       // PNG
       String graphvizBinary = "";
@@ -328,6 +347,23 @@ void batch(File workingDir, String ext) {
   }
   // save summary statistics table to working directory
   saveTable(graphStatSummary, workingDir + "/log/_graph_stats.log.csv", "csv");
+}
+
+/**
+ * because Jekyll can't map collection detail pages out
+ * dynamically from data files without plugins, generate
+ * a stub page for each graph to tie the id (file slug)
+ * together with book details and graph gallery resource files
+ **/
+void makeJekyllCollectionsMarkdown(String outDir) {
+  StringList jmd = new StringList();
+  // for(String s: tgf.array()){ println(s); }
+  jmd.append("---");
+  jmd.append("layout: default");
+  jmd.append("---");
+  jmd.append("{% include gamebook_detail.html id=page.slug %}");
+  jmd.append("{% include gamebook_gallery.html id=page.slug %}");
+  saveStrings(outDir, jmd.array());
 }
 
 void makeTGF(String outDir, String file) {
@@ -806,11 +842,6 @@ class GraphUtils implements Algorithm {
   }
   StringList getLog() {
     StringList list = new StringList();
-    list.append("----------------------------------------");
-    list.append("GRAPH:");
-    list.append(graph.getId());
-    list.append("----------");
-    list.append("");
     list.append("Node Count: " + nodeCount);
     list.append("");
     list.append("Node List:  " + nodeList); 
