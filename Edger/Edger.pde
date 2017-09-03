@@ -284,7 +284,7 @@ void batch(File workingDir, String ext) {
       }
       if (os.toLowerCase().startsWith("win") && graphvizInstalled) {
         try {
-          String[] params = { "C:/Program Files (x86)/Graphviz*/bin/dot.exe", "-Tpng", "-O", outGraphviz };
+          String[] params = { "C:/Program Files (x86)/Graphviz2.38/bin/dot.exe", "-Tpng", "-O", outGraphviz };
           exec(params);
         } 
         catch (RuntimeException e) {
