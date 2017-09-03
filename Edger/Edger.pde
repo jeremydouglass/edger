@@ -13,6 +13,8 @@ import java.nio.file.Paths;
 
 Path workingPath;
 File workingDir; 
+ArrayList<File> workingDirs;
+boolean recurse;
 String os;
 String actionText;
 Path stylePath;
@@ -45,6 +47,7 @@ void setup() {
       workingDir = new File(sketchPath() + "/data");
     }
   }
+  workingDirs = listFilesRecursive(workingDir.getAbsolutePath());
 
   stylePath = Paths.get(settingsDict.get("styles"));
   if (Files.isRegularFile(stylePath)) {
@@ -95,7 +98,15 @@ void draw() {
   case 2:
     runc = color(255, 255, 0);
     loadStyles(styleFile);
-    batch(workingDir, ".txt");
+    if (recurse) {
+      workingDirs = listFilesRecursive(workingDir.getAbsolutePath());
+      for (File f : workingDirs) {
+        println("Processing directory: " + f.getAbsolutePath());
+        batch(f, ".txt");
+      }
+    } else {
+      batch(workingDir, ".txt");
+    }
     runState = 0;
     delay(500);
     break;
@@ -155,16 +166,22 @@ void mouseClicked() {
   }
 }
 void keyPressed() {
+  if (key=='l'||key=='L') {
+    if (runState == 0) {
+      println("Load working folder:");
+      switchFolder();
+    }
+  }
   if (key=='p'||key=='P') {
     if (runState == 0) {
       graphvizInstalled = !graphvizInstalled;
       println("Graphviz export:", graphvizInstalled);
     }
   }
-  if (key=='l'||key=='L') {
+  if (key=='r'||key=='R') {
     if (runState == 0) {
-      println("Load working folder:");
-      switchFolder();
+      recurse=!recurse;
+      println("Recurse directories: ", recurse);
     }
   }
   if (key=='s'||key=='S') {
@@ -205,6 +222,7 @@ void selectFolder(File selection) {
   } else {
     println("Selected:\n    " + selection.getAbsolutePath() + "\n");
     workingDir = selection;
+    workingDirs = listFilesRecursive(workingDir.getAbsolutePath());
 
     settingsDict.set("folder", selection.getAbsolutePath());
     PrintWriter output = createWriter(settingsFile);
@@ -894,5 +912,42 @@ class GraphUtils implements Algorithm {
   }
   void cDegreeMap() {
     degreeMap = Toolkit.degreeMap(graph);
+  }
+}
+
+void printFiles(String dir) {
+  ArrayList<File> allFiles = listFilesRecursive(dir);
+  for (File f : allFiles) {
+    println("Name: " + f.getName());
+    println("Full path: " + f.getAbsolutePath());
+    println("Is directory: " + f.isDirectory());
+    println("Size: " + f.length());
+    println("-----------------------");
+  }
+}
+
+// Function to get a list of all files in a directory and all subdirectories
+// https://processing.org/examples/directorylist.html
+ArrayList<File> listFilesRecursive(String dir) {
+  ArrayList<File> fileList = new ArrayList<File>(); 
+  recurseDir(fileList, dir);
+  return fileList;
+}
+
+// Recursive function to traverse subdirectories
+// https://processing.org/examples/directorylist.html
+void recurseDir(ArrayList<File> a, String dir) {
+  File file = new File(dir);
+  if (file.isDirectory() && !file.getName().startsWith(".") && !file.getName().equals("log")) {
+    // If you want to include directories in the list
+    a.add(file);  
+    File[] subfiles = file.listFiles();
+    for (int i = 0; i < subfiles.length; i++) {
+      // Call this function on all files in this directory
+      recurseDir(a, subfiles[i].getAbsolutePath());
+    }
+  } else {
+    // directories only!
+    // a.add(file);
   }
 }
