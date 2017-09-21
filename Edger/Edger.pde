@@ -421,13 +421,13 @@ void makeTGF(String outDir, Table table) {
   for (TableRow row : table.rows()) {
 
     if (row.getString(1)==null || row.getString(1).equals("")) {
-      String node = "" + row.getInt(0);
+      String node = "" + row.getString(0);
       if (row.getString(2)!=null) {
         node = node + "\t" + row.getString(2);
       }
       tgfnodes.append(node);
     } else {
-      String edge = "" + row.getInt(0) + "\t" + row.getInt(1);
+      String edge = "" + row.getString(0) + "\t" + row.getString(1);
       if (row.getString(2)!=null) {
         edge = edge + "\t" + row.getString(2);
       }
@@ -481,10 +481,10 @@ void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
     String entry = "  "; // indent
     switch(row.getString("type")) {
     case "NODE":
-      entry = entry + row.getInt(0);
+      entry = entry + row.getString(0);
       break;
     case "EDGE":
-      entry = entry + row.getInt(0) + " " + edgeType + " " + row.getInt(1);
+      entry = entry + row.getString(0) + " " + edgeType + " " + row.getString(1);
       break;
     case "COMMENT":
       entry = entry + "// " + row.getString(3);
@@ -718,6 +718,28 @@ Table loadSparseEdgeListToTable(String fileName) {
       throw new RuntimeException(err);
     }
   }
+
+  /*
+  // detect alpha nodes
+  //
+  // these could be logged, or checked for specific warnings
+  // such as labels accidentally appearing as node names
+  // alternately, there could be a strict mode (numbers only)
+  // ...or a semi-strict required list of node names...?
+  
+  for (TableRow row : table.rows()) {
+    boolean[] cells = new boolean[4];
+    for (int i=0; i<cells.length; i++) {
+      cells[i] = !(row.getString(i)==null || row.getString(i).equals(""));
+    }
+    if (cells[0] && !isNaturalNumber(row.getString(0))){
+      println("Node NaN: ", row.getString(0));
+    }
+    if (cells[1] && !isNaturalNumber(row.getString(1))){
+      println("Edge NaN: ", "   ", row.getString(1));
+    }
+  }
+  */
 
   // table.print();
   return(table);
@@ -975,4 +997,15 @@ void recurseDir(ArrayList<File> a, String dir) {
     // directories only!
     // a.add(file);
   }
+}
+
+// Check if a string is a number.
+// For better performance, use an optimized method or
+// create a separate Pattern / Matcher and reuse in the loop
+// https://stackoverflow.com/questions/5439529/determine-if-a-string-is-an-integer-in-java
+boolean isNaturalNumber(String str){
+  return str.matches("^\\d+$");
+}
+boolean isInteger(String str){
+  return str.matches("^-?\\d+$");
 }
