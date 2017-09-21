@@ -1000,12 +1000,43 @@ void recurseDir(ArrayList<File> a, String dir) {
 }
 
 // Check if a string is a number.
-// For better performance, use an optimized method or
-// create a separate Pattern / Matcher and reuse in the loop
-// https://stackoverflow.com/questions/5439529/determine-if-a-string-is-an-integer-in-java
-boolean isNaturalNumber(String str){
-  return str.matches("^\\d+$");
+boolean isNaturalNumber(String str) {
+    if (str == null) {
+        return false;
+    }
+    int length = str.length();
+    if (length == 0) {
+        return false;
+    }
+    for (int i = 0; i < length; i++) {
+        char c = str.charAt(i);
+        if (c < '0' || c > '9') {
+            return false;
+        }
+    }
+    return true;
 }
-boolean isInteger(String str){
-  return str.matches("^-?\\d+$");
+// as per https://stackoverflow.com/a/237204/7207622
+boolean isInteger(String str) {
+    if (str == null) {
+        return false;
+    }
+    int length = str.length();
+    if (length == 0) {
+        return false;
+    }
+    int i = 0;
+    if (str.charAt(0) == '-') {
+        if (length == 1) {
+            return false;
+        }
+        i = 1;
+    }
+    for (; i < length; i++) {
+        char c = str.charAt(i);
+        if (c < '0' || c > '9') {
+            return false;
+        }
+    }
+    return true;
 }
