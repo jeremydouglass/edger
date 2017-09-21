@@ -1,0 +1,22 @@
+graph	rankdir=LR, ordering=out, fontsize=36, nodesep="0.35", ranksep="0.45"
+node	shape=rect, penwidth=2, fontsize=20, style=filled, color=grey90, fontcolor=grey80, fillcolor=white, margin="0,0", labelfloat=true, regular=true, fixedsize=true
+edge	labelfloat=true, penwidth=3, fontsize=12, color=grey90
+
+nodeLabeled	fontsize=12, fillcolor=white
+edgeLabeled	color=grey90, fontcolor= grey90, color=grey90
+
+E	shape=Msquare, fontsize=20, fillcolor=white
+REF	shape=folder, fontsize=20, fillcolor=white
+R	dir=both, arrowhead=tee, arrowtail=odot, style=dashed
+R*	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, constraint=false
+RETURN	dir=both, arrowhead=none, arrowtail=box, style=dashed, constraint=false
+
+YN-YES	penwidth=5, color=grey20, fillcolor=grey20
+YN-NO	penwidth=5, color=black, fillcolor=black
+
+FIGHT-YES	penwidth=5, color=red, fontcolor=red	
+FIGHT-NO	penwidth=5, color=blue, fontcolor=blue	
+
+E-BAD	color=black, fontsize=12, fillcolor=red
+E-OK	color=black, fontsize=12, fillcolor=yellow
+E-GOOD	color=black, fontsize=12, fillcolor=green
