@@ -420,14 +420,21 @@ void makeTGF(String outDir, Table table) {
 
   for (TableRow row : table.rows()) {
 
-    if (row.getString(1)==null || row.getString(1).equals("")) {
-      String node = "" + row.getString(0);
-      if (row.getString(2)!=null) {
-        node = node + "\t" + row.getString(2);
+    // not edge
+    if (row.getString(1)==null || trim(row.getString(1)).isEmpty()) {
+      // and not empty (node)
+      if (row.getString(0)!=null && !trim(row.getString(0)).isEmpty()){
+        String node = "" + row.getString(0);
+        // and has name
+        if (row.getString(2)!=null) {
+          node = node + "\t" + row.getString(2);
+        }
+        tgfnodes.append(node);
       }
-      tgfnodes.append(node);
+    // edge
     } else {
       String edge = "" + row.getString(0) + "\t" + row.getString(1);
+      // and has name
       if (row.getString(2)!=null) {
         edge = edge + "\t" + row.getString(2);
       }
