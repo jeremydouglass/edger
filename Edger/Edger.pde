@@ -304,7 +304,7 @@ void batch(File workingDir, String ext) {
     if (fname.toLowerCase().endsWith(ext)) {
       Table fileTable = loadSparseEdgeListToTable(files[i].getAbsolutePath());
       // GV
-      String outGraphviz = files[i].getParent() + "/gv/" + fname + ".gv";
+      String outGraphviz = files[i].getParent() + "/graphiz/" + fname + ".gv";
       makeGraphviz(outGraphviz, fileTable, fname, graphDirected);
 
       if (tgfOutput) {
@@ -371,7 +371,7 @@ void batch(File workingDir, String ext) {
       // println(gu);
 
       // save statistics to file
-      String outLog = files[i].getParent() + "/log/" + fname + ".log.txt";
+      String outLog = files[i].getParent() + "/logs/" + fname + ".log.txt";
       gu.saveLog(outLog);
 
       // add key statistics to summary table
@@ -390,7 +390,7 @@ void batch(File workingDir, String ext) {
     }
   }
   // save summary statistics table to working directory
-  saveTable(graphStatSummary, workingDir + "/log/_graph_stats.log.csv", "csv");
+  saveTable(graphStatSummary, workingDir + "/logs/_graph_stats.log.csv", "csv");
 }
 
 /**
@@ -993,7 +993,7 @@ ArrayList<File> listFilesRecursive(String dir) {
 // https://processing.org/examples/directorylist.html
 void recurseDir(ArrayList<File> a, String dir) {
   File file = new File(dir);
-  if (file.isDirectory() && !file.getName().startsWith(".") && !file.getName().equals("log")) {
+  if (file.isDirectory() && !file.getName().startsWith(".") && !file.getName().equals("logs")) {
     // If you want to include directories in the list
     a.add(file);  
     File[] subfiles = file.listFiles();
