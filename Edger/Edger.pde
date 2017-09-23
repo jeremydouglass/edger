@@ -69,6 +69,7 @@ void setup() {
       workingDir = new File(sketchPath() + "/data");
     }
   }
+
   workingDirs = listFilesRecursive(workingDir.getAbsolutePath());
 
   stylePath = Paths.get(settingsDict.get("styles"));
@@ -311,11 +312,11 @@ void batch(File workingDir, String ext) {
         String outTGF = files[i].getParent() + "/tgf/" + fname + ".tgf";
         makeTGF(outTGF, fileTable);
       }
-      
+
       if (jekyllOutput) {
         // Jekyll Markdown files
         String jfname = fname.split(" ")[0];
-        if (fname.length() > 5){
+        if (fname.length() > 5) {
           jfname = fname.substring(0, 5);
         } else {
           jfname = fname;
@@ -423,7 +424,7 @@ void makeTGF(String outDir, Table table) {
     // not edge
     if (row.getString(1)==null || trim(row.getString(1)).isEmpty()) {
       // and not empty (node)
-      if (row.getString(0)!=null && !trim(row.getString(0)).isEmpty()){
+      if (row.getString(0)!=null && !trim(row.getString(0)).isEmpty()) {
         String node = "" + row.getString(0);
         // and has name
         if (row.getString(2)!=null) {
@@ -431,7 +432,7 @@ void makeTGF(String outDir, Table table) {
         }
         tgfnodes.append(node);
       }
-    // edge
+      // edge
     } else {
       String edge = "" + row.getString(0) + "\t" + row.getString(1);
       // and has name
@@ -728,25 +729,25 @@ Table loadSparseEdgeListToTable(String fileName) {
 
   /*
   // detect alpha nodes
-  //
-  // these could be logged, or checked for specific warnings
-  // such as labels accidentally appearing as node names
-  // alternately, there could be a strict mode (numbers only)
-  // ...or a semi-strict required list of node names...?
-  
-  for (TableRow row : table.rows()) {
-    boolean[] cells = new boolean[4];
-    for (int i=0; i<cells.length; i++) {
-      cells[i] = !(row.getString(i)==null || row.getString(i).equals(""));
-    }
-    if (cells[0] && !isNaturalNumber(row.getString(0))){
-      println("Node NaN: ", row.getString(0));
-    }
-    if (cells[1] && !isNaturalNumber(row.getString(1))){
-      println("Edge NaN: ", "   ", row.getString(1));
-    }
-  }
-  */
+   //
+   // these could be logged, or checked for specific warnings
+   // such as labels accidentally appearing as node names
+   // alternately, there could be a strict mode (numbers only)
+   // ...or a semi-strict required list of node names...?
+   
+   for (TableRow row : table.rows()) {
+   boolean[] cells = new boolean[4];
+   for (int i=0; i<cells.length; i++) {
+   cells[i] = !(row.getString(i)==null || row.getString(i).equals(""));
+   }
+   if (cells[0] && !isNaturalNumber(row.getString(0))){
+   println("Node NaN: ", row.getString(0));
+   }
+   if (cells[1] && !isNaturalNumber(row.getString(1))){
+   println("Edge NaN: ", "   ", row.getString(1));
+   }
+   }
+   */
 
   // table.print();
   return(table);
@@ -1008,42 +1009,42 @@ void recurseDir(ArrayList<File> a, String dir) {
 
 // Check if a string is a number.
 boolean isNaturalNumber(String str) {
-    if (str == null) {
-        return false;
+  if (str == null) {
+    return false;
+  }
+  int length = str.length();
+  if (length == 0) {
+    return false;
+  }
+  for (int i = 0; i < length; i++) {
+    char c = str.charAt(i);
+    if (c < '0' || c > '9') {
+      return false;
     }
-    int length = str.length();
-    if (length == 0) {
-        return false;
-    }
-    for (int i = 0; i < length; i++) {
-        char c = str.charAt(i);
-        if (c < '0' || c > '9') {
-            return false;
-        }
-    }
-    return true;
+  }
+  return true;
 }
 // as per https://stackoverflow.com/a/237204/7207622
 boolean isInteger(String str) {
-    if (str == null) {
-        return false;
+  if (str == null) {
+    return false;
+  }
+  int length = str.length();
+  if (length == 0) {
+    return false;
+  }
+  int i = 0;
+  if (str.charAt(0) == '-') {
+    if (length == 1) {
+      return false;
     }
-    int length = str.length();
-    if (length == 0) {
-        return false;
+    i = 1;
+  }
+  for (; i < length; i++) {
+    char c = str.charAt(i);
+    if (c < '0' || c > '9') {
+      return false;
     }
-    int i = 0;
-    if (str.charAt(0) == '-') {
-        if (length == 1) {
-            return false;
-        }
-        i = 1;
-    }
-    for (; i < length; i++) {
-        char c = str.charAt(i);
-        if (c < '0' || c > '9') {
-            return false;
-        }
-    }
-    return true;
+  }
+  return true;
 }
