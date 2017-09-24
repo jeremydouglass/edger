@@ -340,13 +340,18 @@ void batch(File workingDir, String ext) {
   graphStatSummary.addColumn("Top Nodes");
   TableRow summRow;
 
+  // create images folder if does not exist
+  // -- graphviz will not do this on write
+  File imageDir = new File(workingDir.getAbsolutePath()+ "/images");
+  imageDir.mkdir();
+
   // loop through file list 
   for (int i = 0; i < files.length; i++) {
     String fname = files[i].getName();
     if (fname.toLowerCase().endsWith(ext)) {
       Table fileTable = loadSparseEdgeListToTable(files[i].getAbsolutePath());
       // GV
-      String outGraphviz = files[i].getParent() + "/graphiz/" + fname + ".gv";
+      String outGraphviz = files[i].getParent() + "/graphviz/" + fname + ".gv";
       String outImage    = files[i].getParent() + "/images/" + fname + ".gv.png";
       makeGraphviz(outGraphviz, fileTable, fname, graphDirected);
 
