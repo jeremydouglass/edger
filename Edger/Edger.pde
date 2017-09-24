@@ -305,6 +305,7 @@ void batch(File workingDir, String ext) {
       Table fileTable = loadSparseEdgeListToTable(files[i].getAbsolutePath());
       // GV
       String outGraphviz = files[i].getParent() + "/graphiz/" + fname + ".gv";
+      String outImage    = files[i].getParent() + "/images/" + fname + ".gv.png";
       makeGraphviz(outGraphviz, fileTable, fname, graphDirected);
 
       if (tgfOutput) {
@@ -334,7 +335,7 @@ void batch(File workingDir, String ext) {
           graphvizBinary="/usr/local/bin/neato";
         }
         try {
-          String[] params = { graphvizBinary, "-Tpng", "-O", outGraphviz }; // e.g. dot -Tpng -O  *.gv
+          String[] params = { graphvizBinary, "-Tpng", "-o", outImage, outGraphviz }; // e.g. dot -Tpng -O *.gv  --or--  dot -Tpng -o bar.png foo.gv
           exec(params);
         } 
         catch (RuntimeException e) {
@@ -352,7 +353,7 @@ void batch(File workingDir, String ext) {
           graphvizBinary="C:/Program Files (x86)/Graphviz2.38/bin/neato.exe";
         }
         try {
-          String[] params = { graphvizBinary, "-Tpng", "-O", outGraphviz };
+          String[] params = { graphvizBinary, "-Tpng", "-o", outImage, outGraphviz };
           exec(params);
         } 
         catch (RuntimeException e) {
