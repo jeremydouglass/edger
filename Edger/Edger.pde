@@ -1,7 +1,17 @@
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
- **/
+ *
+ * To use from the command line:
+ *        processing-java --sketch=`pwd`/Edger --run
+ * ...or:
+ *        processing-java --sketch=`pwd`/Edger --run folder="/path/to/edge/files/"
+ *
+ * Previous runs from the UI persist in settings.txt.
+ * Calls from the command line may use the default run folder from settings.
+ * Calls from the command line that specify a folder do not update settings.
+ *
+ */
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
@@ -11,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+boolean PDE;
 Path workingPath;
 File workingDir; 
 ArrayList<File> workingDirs;
@@ -25,6 +36,7 @@ boolean tgfOutput = true;
 boolean jekyllOutput = false;
 boolean graphDirected = true;
 int runState;
+StringDict argDict;
 StringDict labelCodeDict;
 StringDict settingsDict;
 boolean ignoreBadRows = false;
@@ -33,13 +45,13 @@ boolean exitWhenDone;
 void setup() { 
   size(200, 200);
   os = System.getProperty("os.name");
-
-  // detect command line invocation -- requires a throwaway
-  // placeholder argument, e.g. "exit"
-  // e.g.
-  //     processing-java --sketch=`pwd`/Edger --run exit
-  if (args != null) {
-
+  // check if launched from PDE
+  // get invocation string
+  String cmd = System.getProperty("sun.java.command");
+  if (cmd.contains("--external")) {
+    PDE=true;
+  } else {
+    PDE=false;
     // default run-and-quit command line behavior
     runState = 1;
     exitWhenDone = true;
@@ -55,10 +67,40 @@ void setup() {
     }
   }
 
+  // if there are command line arguments, print them:
+  println(args == null ? "null" : args);
+
+  // load command line arguments
+  argDict = new StringDict();
+  if (args != null) {
+    for (String arg : args) {
+      String[] entry = split(arg, "=");
+      if (entry.length == 1) {
+        argDict.set(entry[0], "");
+      }
+      if (entry.length == 2) {
+        argDict.set(entry[0], entry[1]);
+      }
+    }
+  }
+  
+  for (String arg : argDict.keyArray()) {
+    switch(arg) {
+    case "folder":
+      workingPath = Paths.get(argDict.get(arg));
+      if (!Files.isDirectory(workingPath)) {
+        workingPath = null;
+      }
+      break;
+    }
+  }
+
   settingsDict = new StringDict();
   loadSettings(settingsFile);
 
-  workingPath = Paths.get(settingsDict.get("folder"));
+  if (workingPath == null || !Files.exists(workingPath)) {
+    workingPath = Paths.get(settingsDict.get("folder"));
+  }
   if (Files.isDirectory(workingPath)) {
     workingDir = workingPath.toFile();
   } else {
