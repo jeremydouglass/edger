@@ -327,12 +327,12 @@ void batch(File workingDir, String ext) {
 
       // PNG
       String graphvizBinary = "";
-      if (graphDirected) {
-        graphvizBinary="/usr/local/bin/dot";
-      } else {
-        graphvizBinary="/usr/local/bin/neato";
-      }
       if (os.equals("Mac OS X") && graphvizInstalled) {
+        if (graphDirected) {
+          graphvizBinary="/usr/local/bin/dot";
+        } else {
+          graphvizBinary="/usr/local/bin/neato";
+        }
         try {
           String[] params = { graphvizBinary, "-Tpng", "-O", outGraphviz }; // e.g. dot -Tpng -O  *.gv
           exec(params);
@@ -346,8 +346,13 @@ void batch(File workingDir, String ext) {
         }
       }
       if (os.toLowerCase().startsWith("win") && graphvizInstalled) {
+        if (graphDirected) {
+          graphvizBinary="C:/Program Files (x86)/Graphviz2.38/bin/dot.exe";
+        } else {
+          graphvizBinary="C:/Program Files (x86)/Graphviz2.38/bin/neato.exe";
+        }
         try {
-          String[] params = { "C:/Program Files (x86)/Graphviz2.38/bin/dot.exe", "-Tpng", "-O", outGraphviz };
+          String[] params = { graphvizBinary, "-Tpng", "-O", outGraphviz };
           exec(params);
         } 
         catch (RuntimeException e) {
