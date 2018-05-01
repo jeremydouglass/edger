@@ -18,3 +18,9 @@ R	dir=both, arrowhead=tee, arrowtail=odot, style=dashed
 R*	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, constraint=false
 RETURN	dir=both, arrowhead=none, arrowtail=box, style=dashed, constraint=false
 
+ILL	image="illustration-full.png"
+IBEFORE	image="illustration-upper.png"
+IMID	image="illustration-mid.png"
+IAFTER	image="illustration-lower.png"
+ILEFT	image="illustration-left.png"
+IRIGHT	image="illustration-right.png"
