@@ -571,7 +571,6 @@ void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
       // entry = entry + "\n";
       break;
     case "GROUP":
-      println("group!");
       String groupName = row.getString(0).substring(1); 
       String groupList = join(split(row.getString(1), ','), "; ");
       entry = entry + "subgraph cluster_" + groupName.replaceAll("[^A-Za-z0-9]", "") + " {\n    label=\"" + groupName + "\";\n";
