@@ -473,7 +473,12 @@ void makeTGF(String outDir, Table table) {
   StringList tgfedges = new StringList();
 
   for (TableRow row : table.rows()) {
-
+    // skip group info
+    if (row.getString(0)!=null && !row.getString(0).isEmpty()) {
+      if (row.getString(0).charAt(0)=='+') {
+        continue;
+      }
+    }
     // not edge
     if (row.getString(1)==null || trim(row.getString(1)).isEmpty()) {
       // and not empty (node)
@@ -553,6 +558,13 @@ void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
     case "EMPTY":
       // entry = entry + "\n";
       break;
+    case "GROUP":
+      println("group!");
+      String groupName = row.getString(0).substring(1); 
+      String groupList = join(split(row.getString(1), ','), "; ");
+      entry = entry + "subgraph cluster_" + groupName.replaceAll("[^A-Za-z0-9]", "") + " {\n    label=\"" + groupName + "\";\n";
+      entry = entry + "    " + groupList + ";\n  }";
+      break;
     case "ERROR":
       continue;
     default:
@@ -592,7 +604,7 @@ void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
       entry = entry + "\t" + "[ " + join(attrs.array(), ", ") + " ]";
     }
     // end line
-    if (!row.getString("type").equals("EMPTY")) {
+    if (!row.getString("type").equals("EMPTY") && !row.getString("type").equals("GROUP")) {
       entry = entry + ";";
     }
 
@@ -736,6 +748,9 @@ Table loadSparseEdgeListToTable(String fileName) {
     }
     if (cells[0] && cells[1]) {
       row.setString("type", "EDGE");
+      if (row.getString(0).charAt(0)=='+') {
+        row.setString("type", "GROUP");
+      }
       continue;
     }
     if (!cells[0] && cells[1]) {
