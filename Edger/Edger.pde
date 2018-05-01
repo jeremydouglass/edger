@@ -580,7 +580,7 @@ void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
 
       // apply custom styles based on end of label text
       for (String labelCode : labelCodeDict.keyArray()) {
-        if (row.getString(2)!=null && row.getString(2).endsWith(labelCode)) {
+        if (row.getString(2)!=null && trim(row.getString(2)).equals(labelCode)) {
           attrs.append(labelCodeDict.get(labelCode));
         }
       }
