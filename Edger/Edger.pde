@@ -122,7 +122,7 @@ void setup() {
     if (Files.isRegularFile(stylePath)) {
       styleFile = stylePath.toFile();
     } else {
-      styleFile = new File(sketchPath() + "/" + "gvStyles.txt");
+      styleFile = new File(sketchPath() + "/styles/" + "gvStyles.txt");
     }
   }
 
@@ -876,7 +876,7 @@ void loadSettings(String fname) {
   catch (NullPointerException e) {
     println("Settings not found! Falling back to defaults.");
     newSettingsDict.set("folder", "data");
-    newSettingsDict.set("styles", "gvBlank.txt");
+    newSettingsDict.set("styles", "styles/gvBlank.txt");
     settingsDict = newSettingsDict;
   }
 }
