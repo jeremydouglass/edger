@@ -12,7 +12,6 @@ END	shape=Msquare, fontsize=20, fillcolor=grey70
 E	shape=Msquare, fontsize=20, fillcolor=grey70
 WIN	shape=Msquare, fontsize=20, fillcolor=grey50
 
-
 REF	shape=folder, fontsize=20, fillcolor=grey80
 R	dir=both, arrowhead=tee, arrowtail=odot, style=dashed
 R*	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, constraint=false
@@ -24,3 +23,9 @@ IMID	image="illustration-mid.png"
 IAFTER	image="illustration-lower.png"
 ILEFT	image="illustration-left.png"
 IRIGHT	image="illustration-right.png"
+
+ICHARACTER	image="illustration-character.png"
+IOBJECT	image="illustration-object.png"
+ISETTING	image="illustration-setting.png"
+IEVENT	image="illustration-event.png"
+IOTHER	image="illustration-other.png"
