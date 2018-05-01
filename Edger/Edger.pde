@@ -605,6 +605,19 @@ void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
   }
   // end digraph
   graphviz.append("}\n");
+
+  // remove duplicate blank lines from output
+  String current, previous;
+  current = previous = "x";
+  for (int i = graphviz.size()-1; i>0; i--) {
+    current = trim(graphviz.get(i));
+    if (previous.equals("") && current.equals("")) {
+      graphviz.set(i+1, "");  // simplify whitespace
+      graphviz.remove(i);     // remove duplicate blank line
+    }
+    previous = trim(graphviz.get(i));
+  }
+
   // display graphviz output
   // for (String s : graphviz) { println(s); }
   saveStrings(outDir, graphviz.array());
