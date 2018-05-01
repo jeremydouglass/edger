@@ -1,2 +1,2 @@
 folder	data
-styles	styles/gvStyles-small.txt
+styles	styles/gvStyles.txt
