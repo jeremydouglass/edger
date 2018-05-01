@@ -1,3 +1,4 @@
+import java.io.InputStreamReader;
 /** edger -- an edge list converter
  * Jeremy Douglass
  * Processing 3.3.5
@@ -375,6 +376,9 @@ void batch(File workingDir, String ext) {
 
       // PNG
       String graphvizBinary = "";
+      // e.g. dot -Tpng -O *.gv  --or--  dot -Tpng -o bar.png foo.gv
+      // https://www.graphviz.org/doc/info/command.html
+      // https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#exec-java.lang.String-java.lang.String:A-
       if (os.equals("Mac OS X") && graphvizInstalled) {
         if (graphDirected) {
           graphvizBinary="/usr/local/bin/dot";
@@ -382,9 +386,13 @@ void batch(File workingDir, String ext) {
           graphvizBinary="/usr/local/bin/neato";
         }
         try {
-          String[] params = { graphvizBinary, "-Tpng", "-o", outImage, outGraphviz }; // e.g. dot -Tpng -O *.gv  --or--  dot -Tpng -o bar.png foo.gv
-          exec(params);
+          String[] params = { graphvizBinary, "-Tpng", "-o", outImage, outGraphviz };
+          String[] envp = { "GV_FILE_PATH=" + workingPath + "/graphviz/images" + ":" + workingPath + "/graphviz" + ":" + workingPath + ":" + sketchPath() + "/styles/images" + ":" + sketchPath() + "/styles" + ":" + sketchPath() };
+          Runtime.getRuntime().exec(params, envp);
         } 
+        catch(IOException ie) {
+          ie.printStackTrace();
+        }
         catch (RuntimeException e) {
           // deactivate image output
           println("Deactivating image output: graphvizInstalled = false");
@@ -401,8 +409,12 @@ void batch(File workingDir, String ext) {
         }
         try {
           String[] params = { graphvizBinary, "-Tpng", "-o", outImage, outGraphviz };
-          exec(params);
+          String[] envp = { "GV_FILE_PATH=" + workingPath + "/graphviz/images" + ";" + workingPath + "/graphviz" + ";" + workingPath + ";" + sketchPath() + "/styles/images" + ";" + sketchPath() + "/styles" + ";" + sketchPath() };
+          Runtime.getRuntime().exec(params, envp);
         } 
+        catch(IOException ie) {
+          ie.printStackTrace();
+        }
         catch (RuntimeException e) {
           // deactivate image output
           println("Deactivating image output: graphvizInstalled = false");
