@@ -8,24 +8,24 @@ edgeLabeled	color=grey40, fontcolor=grey40, fillcolor=grey40
 START	shape=Msquare, fontsize=20
 S	shape=Msquare, fontsize=20
 
-END	shape=Msquare, fontsize=20, fillcolor=grey70
-E	shape=Msquare, fontsize=20, fillcolor=grey70
+END	shape=Msquare, fontsize=20, fillcolor=grey70, xlabel=""
+E	shape=Msquare, fontsize=20, fillcolor=grey70, xlabel=""
 WIN	shape=Msquare, fontsize=20, fillcolor=grey50
 
 REF	shape=folder, fontsize=20, fillcolor=grey80
-R	dir=both, arrowhead=tee, arrowtail=odot, style=dashed
-R*	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, constraint=false
-RETURN	dir=both, arrowhead=none, arrowtail=box, style=dashed, constraint=false
+R	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, label=""
+R*	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, constraint=false, label=""
+RETURN	dir=both, arrowhead=none, arrowtail=box, style=dashed, constraint=false, label=""
 
-ILL	image="illustration-full.png"
-IBEFORE	image="illustration-upper.png"
-IMID	image="illustration-mid.png"
-IAFTER	image="illustration-lower.png"
-ILEFT	image="illustration-left.png"
-IRIGHT	image="illustration-right.png"
+ILL	image="illustration-full.png", xlabel=""
+IBEFORE	image="illustration-upper.png", xlabel=""
+IMID	image="illustration-mid.png", xlabel=""
+IAFTER	image="illustration-lower.png", xlabel=""
+ILEFT	image="illustration-left.png", xlabel=""
+IRIGHT	image="illustration-right.png", xlabel=""
 
-ICHARACTER	image="illustration-character.png"
-IOBJECT	image="illustration-object.png"
-ISETTING	image="illustration-setting.png"
-IEVENT	image="illustration-event.png"
-IOTHER	image="illustration-other.png"
+ICHARACTER	image="illustration-character.png", label="", xlabel=""
+IOBJECT	image="illustration-object.png", label="", xlabel=""
+ISETTING	image="illustration-setting.png", label="", xlabel=""
+IEVENT	image="illustration-event.png", label="", xlabel=""
+IOTHER	image="illustration-other.png", label="", xlabel=""
