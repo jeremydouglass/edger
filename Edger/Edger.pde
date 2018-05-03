@@ -540,7 +540,11 @@ void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
   }
   String g = "";
   if (!"".equals(fname)) {
-    g = g + " label=" + "\"" + fname + "\" ";
+    if (fname.endsWith(".txt")) {
+      g = g + " label=" + "\"" + fname.substring(0, fname.length()-4) + "\" ";
+    } else {
+      g = g + " label=" + "\"" + fname + "\" ";
+    }
   }
   if (!labelCodeDict.get("graph", "").isEmpty()) {
     g = g + labelCodeDict.get("graph", "");
