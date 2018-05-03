@@ -354,7 +354,37 @@ void batch(File workingDir, String ext) {
       // GV
       String outGraphviz = files[i].getParent() + "/graphviz/" + fname + ".gv";
       String outImage    = files[i].getParent() + "/images/" + fname + ".gv.png";
-      makeGraphviz(outGraphviz, fileTable, fname, graphDirected);
+
+      // build GraphStream graph
+      graph = loadGraphStream(fname, fileTable);
+
+      // collect graph statistics
+      gu = new GraphUtils();
+      gu.init(graph);
+      gu.compute();
+
+      // display statistics
+      // println(gu);
+
+      // save statistics to file
+      String outLog = files[i].getParent() + "/logs/" + fname + ".log.txt";
+      gu.saveLog(outLog);
+
+      // add key statistics to summary table
+      summRow = graphStatSummary.addRow();
+      summRow.setString("File", fname);
+      summRow.setInt("Nodes", gu.nodeCount);
+      summRow.setString("Diameter", nf(gu.diameter, 0, 2));
+      summRow.setString("AvgDegree", nf(gu.averageDegree, 0, 2));
+      StringList dmap = new StringList();
+      for (Node n : gu.degreeMap) {
+        if (n.getDegree()>3) {
+          dmap.append(n.getId());
+        }
+      }
+      summRow.setString("Top Nodes", join(dmap.array(), ", "));
+
+      makeGraphviz(outGraphviz, fileTable, fname, graphDirected, int(gu.diameter));
 
       if (tgfOutput) {
         // TGF
@@ -423,35 +453,6 @@ void batch(File workingDir, String ext) {
           println("ERROR:     " + e + "\n");
         }
       }
-
-      // build GraphStream graph
-      graph = loadGraphStream(fname, fileTable);
-
-      // collect graph statistics
-      gu = new GraphUtils();
-      gu.init(graph);
-      gu.compute();
-
-      // display statistics
-      // println(gu);
-
-      // save statistics to file
-      String outLog = files[i].getParent() + "/logs/" + fname + ".log.txt";
-      gu.saveLog(outLog);
-
-      // add key statistics to summary table
-      summRow = graphStatSummary.addRow();
-      summRow.setString("File", fname);
-      summRow.setInt("Nodes", gu.nodeCount);
-      summRow.setString("Diameter", nf(gu.diameter, 0, 2));
-      summRow.setString("AvgDegree", nf(gu.averageDegree, 0, 2));
-      StringList dmap = new StringList();
-      for (Node n : gu.degreeMap) {
-        if (n.getDegree()>3) {
-          dmap.append(n.getId());
-        }
-      }
-      summRow.setString("Top Nodes", join(dmap.array(), ", "));
     }
   }
   // save summary statistics table to working directory
@@ -524,11 +525,11 @@ void makeTGF(String outDir, Table table) {
 }
 
 
-void makeGraphviz(String outDir, String file, String fname, boolean directed) {
+void makeGraphviz(String outDir, String file, String fname, boolean directed, int diameter) {
   Table table = loadSparseEdgeListToTable(file);
-  makeGraphviz(outDir, table, fname, directed);
+  makeGraphviz(outDir, table, fname, directed, diameter);
 }
-void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
+void makeGraphviz(String outDir, Table table, String fname, boolean directed, int diameter) {
   StringList graphviz = new StringList(); // GV graphviz dot file lines
   String edgeType = "";
   if (directed) {
@@ -625,6 +626,20 @@ void makeGraphviz(String outDir, Table table, String fname, boolean directed) {
       entry = entry + "\t// " + row.getString(3);
     }
     graphviz.append(entry);
+  }
+  // draw diameter ruler
+  if(diameter>0){
+    String rulerStr = "  subgraph cluster_depth_ruler {\n"
+                    + "    graph [style=invisible, label=\"\"];\n"
+                    + "    node  [shape=\"none\", fontcolor=\"grey80\", fillcolor=\"none\"];\n"
+                    + "    edge  [penwidth=1, color=\"grey90\", arrowhead=\"open\"];\n"
+                    + "    dr1   [label=\"1\"];\n";
+    for (int i=2; i<diameter; i++){
+      rulerStr = rulerStr + "    dr" + str(i) +   " [label=\"" + str(i) + "\"];\n"; // label
+      rulerStr = rulerStr + "    dr" + str(i-1) + "  -> dr" +    str(i) + ";\n";    // edge
+    }
+    rulerStr = rulerStr + "  }\n";
+    graphviz.append(rulerStr);
   }
   // end digraph
   graphviz.append("}\n");
