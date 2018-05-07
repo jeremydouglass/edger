@@ -17,6 +17,7 @@ R	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, label=""
 R*	dir=both, arrowhead=tee, arrowtail=odot, style=dashed, constraint=false, label=""
 RETURN	dir=both, arrowhead=none, arrowtail=box, style=dashed, constraint=false, label=""
 
+I	image="illustration-full.png", xlabel=""
 ILL	image="illustration-full.png", xlabel=""
 IBEFORE	image="illustration-upper.png", xlabel=""
 IMID	image="illustration-mid.png", xlabel=""
